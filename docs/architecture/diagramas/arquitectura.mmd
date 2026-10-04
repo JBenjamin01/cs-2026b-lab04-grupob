@@ -1,0 +1,64 @@
+%% San Camilo en Línea — Arquitectura elegida: monolito modular (ADR-001)
+%% Trazabilidad módulo → requisito: ver etiquetas RF de cada módulo (drivers.md)
+
+flowchart TB
+    CL["Cliente"]
+    CO["Comerciante"]
+    RE["Repartidor"]
+
+    subgraph APP["San Camilo en Línea — Monolito modular (un solo despliegue en VPS)"]
+        direction TB
+        PWA["PWA offline-first<br/>service worker + cola local IndexedDB"]
+        API["Capa de presentación<br/>API REST Django"]
+
+        subgraph MOD["Módulos de dominio (se comunican solo por interfaces públicas)"]
+            M1["Catálogo y puestos<br/>RF-01, RF-02, RF-06"]
+            M2["Pedidos multipuesto<br/>RF-03, RF-08<br/>estado_pedido"]
+            M3["Pagos<br/>RF-04<br/>estado_pago"]
+            M4["Notificaciones<br/>RF-05"]
+            M5["Reparto<br/>RF-07"]
+        end
+
+        subgraph INF["Capa de infraestructura"]
+            REPO["Repositorios ORM"]
+            CACHE["Caché del catálogo<br/>Redis"]
+            COLA["Cola persistente con reintentos<br/>Celery + Redis"]
+            AP["Puerto PasarelaPago<br/>adaptador Yape"]
+            AW["Puerto Mensajeria<br/>adaptador WhatsApp"]
+        end
+    end
+
+    DB[("PostgreSQL<br/>un esquema por módulo")]
+    YP["Proveedor de pagos<br/>cobro con Yape"]
+    WA["WhatsApp Business Platform"]
+
+    CL & CO & RE --> PWA
+    PWA -->|"HTTPS / JSON + clave de idempotencia"| API
+    API --> M1 & M2 & M3 & M5
+
+    M2 -->|"consulta productos"| M1
+    M2 -->|"iniciar cobro"| M3
+    M3 -->|"evento PedidoPagado"| M4
+    M5 -->|"consulta pedidos"| M2
+
+    M1 --> CACHE
+    M1 & M2 & M3 & M4 & M5 --> REPO
+    M3 --> AP
+    M4 -->|"encola envío"| COLA
+    COLA --> AW
+
+    REPO --> DB
+    AP --> YP
+    AW --> WA
+    YP -.->|"webhook de pago idempotente"| API
+
+    classDef usr fill:#FDEDEC,stroke:#C8310E,color:#000
+    classDef front fill:#FFF8E1,stroke:#F9A825,color:#000
+    classDef mod fill:#E8F5E9,stroke:#2E7D32,color:#000
+    classDef infra fill:#E3F2FD,stroke:#1565C0,color:#000
+    classDef ext fill:#F2F2F2,stroke:#7F7F7F,color:#000,stroke-dasharray: 4 3
+    class CL,CO,RE usr
+    class PWA,API front
+    class M1,M2,M3,M4,M5 mod
+    class REPO,CACHE,COLA,AP,AW infra
+    class YP,WA ext
