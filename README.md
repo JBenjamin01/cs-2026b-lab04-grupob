@@ -1,6 +1,6 @@
 # San Camilo en Línea — Laboratorio 04: Fundamentos de arquitectura de software
 
-Construcción de Software · EPIS-UNSA · 2026-B · Grupo XX
+Construcción de Software · EPIS-UNSA · 2026-B · Grupo B
 
 ## Integrantes
 
