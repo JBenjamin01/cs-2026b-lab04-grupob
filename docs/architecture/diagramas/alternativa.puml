@@ -1,0 +1,67 @@
+@startuml
+skinparam dpi 150
+skinparam componentStyle rectangle
+skinparam defaultFontName Arial
+skinparam backgroundColor white
+skinparam noteBackgroundColor #FFF8E1
+skinparam noteBorderColor #F9A825
+title Alternativa A (descartada): San Camilo en Línea como monolito en capas
+
+actor "Cliente" as CL
+actor "Comerciante" as CO
+actor "Repartidor" as RE
+
+node "VPS único" {
+  package "Capa de presentación" {
+    [PWA + vistas Django] as UI
+  }
+
+  package "Capa de lógica de negocio" {
+    [Servicio de catálogo] as SC
+    [Servicio de pedidos] as SP
+    [Servicio de pagos] as SPA
+    [Servicio de notificaciones] as SN
+    [Servicio de reparto] as SR
+  }
+
+  package "Capa de acceso a datos" {
+    [models.py compartido\n(todas las entidades)] as DAL
+  }
+
+  database "PostgreSQL\n(esquema único)" as DB
+}
+
+cloud "Proveedor de pagos\n(cobro con Yape)" as YP
+cloud "WhatsApp\nBusiness Platform" as WA
+
+CL --> UI
+CO --> UI
+RE --> UI
+
+UI --> SC
+UI --> SP
+UI --> SR
+
+SP --> SC
+SP --> SPA
+SPA --> SN
+SR --> SP
+
+SC --> DAL
+SP --> DAL
+SPA --> DAL
+SN --> DAL
+SR --> DAL
+DAL --> DB
+
+SPA ..> YP : llamada directa\n(sin puerto)
+SN ..> WA : llamada síncrona\n(sin cola)
+
+note right of SPA
+  Segunda mejor en la matriz: 4,00 frente a 4,10 del monolito modular.
+  Descartada: todos los servicios comparten models.py y llaman directo a Yape y WhatsApp.
+  Agregar Plin (R-05) obliga a modificar código común a todos los servicios.
+  Una falla de WhatsApp bloquea la confirmación del pedido (QA-03).
+  Su ventaja (+1 en tiempo y simplicidad) no compensa ese acoplamiento.
+end note
+@enduml
