@@ -37,8 +37,8 @@ flowchart TB
     API --> M1 & M2 & M3 & M5
 
     M2 -->|"consulta productos"| M1
+    M2 -->|"encola aviso"| M4
     M2 -->|"iniciar cobro"| M3
-    M3 -->|"evento PedidoPagado"| M4
     M5 -->|"consulta pedidos"| M2
 
     M1 --> CACHE

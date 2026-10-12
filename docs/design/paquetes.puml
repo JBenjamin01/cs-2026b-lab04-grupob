@@ -1,0 +1,46 @@
+@startuml paquetes
+' San Camilo en Línea — E5: paquetes del monolito modular (ADR-001) y sus dependencias (regla C4)
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam dpi 130
+skinparam packageStyle rectangle
+skinparam packageBackgroundColor #EEF2F8
+skinparam packageBorderColor #1A3A5C
+title San Camilo en Línea — Paquetes del monolito modular (vista de desarrollo)
+
+package "sancamilo" {
+  package reparto {
+  }
+  package pedidos {
+  }
+  package catalogo {
+  }
+  package pagos {
+  }
+  package notificaciones {
+  }
+  package comun {
+  }
+}
+
+reparto ..> pedidos : consulta Pedido y\nmarca subpedidos RECOGIDO
+pedidos ..> catalogo : usa Producto\n(reservar / liberar) y Comerciante
+pedidos ..> pagos : usa PasarelaPago (puerto)\ny Pago
+pedidos ..> notificaciones : usa NotificadorMensajeria\n(puerto)
+catalogo ..> comun
+pedidos ..> comun
+pagos ..> comun
+notificaciones ..> comun
+reparto ..> comun
+
+note as N1
+  Regla de dependencias (ADR-001 y ADR-004):
+  1. Sin ciclos: el grafo es acíclico.
+  2. pagos, notificaciones y catalogo NO dependen de pedidos:
+     sus puertos usan tipos neutrales (UUID, Decimal, String).
+  3. Ningún módulo importa los modelos de otro; solo su
+     interfaz pública. Se verifica con import-linter en la CI.
+  4. comun solo contiene tipos base y excepciones.
+end note
+sancamilo .. N1
+@enduml
