@@ -1,0 +1,48 @@
+@startuml packages_sancamilo
+skinparam dpi 130
+skinparam defaultFontName Arial
+set namespaceSeparator none
+package "catalogo" as catalogo {
+}
+package "catalogo.modelos" as catalogo.modelos {
+}
+package "comun" as comun {
+}
+package "comun.excepciones" as comun.excepciones {
+}
+package "notificaciones" as notificaciones {
+}
+package "notificaciones.puertos" as notificaciones.puertos {
+}
+package "pagos" as pagos {
+}
+package "pagos.modelos" as pagos.modelos {
+}
+package "pedidos" as pedidos {
+}
+package "pedidos.dominio" as pedidos.dominio {
+}
+package "pedidos.puertos" as pedidos.puertos {
+}
+package "pedidos.servicio" as pedidos.servicio {
+}
+package "reparto" as reparto {
+}
+package "reparto.modelos" as reparto.modelos {
+}
+catalogo --> catalogo.modelos
+catalogo.modelos --> comun.excepciones
+notificaciones --> notificaciones.puertos
+pagos --> pagos.modelos
+pedidos --> pedidos.dominio
+pedidos --> pedidos.servicio
+pedidos.dominio --> catalogo
+pedidos.dominio --> comun.excepciones
+pedidos.dominio --> pagos
+pedidos.puertos --> pedidos.dominio
+pedidos.servicio --> notificaciones
+pedidos.servicio --> pagos
+pedidos.servicio --> pedidos.dominio
+pedidos.servicio --> pedidos.puertos
+reparto.modelos --> pedidos
+@enduml

@@ -1,0 +1,77 @@
+@startuml classes_pedidos
+skinparam dpi 130
+skinparam defaultFontName Arial
+skinparam shadowing false
+set namespaceSeparator none
+class "Cliente" as pedidos.dominio.Cliente {
+  celular : str
+  direccion : str
+  id : UUID
+  nombre : str
+}
+class "EstadoPedido" as pedidos.dominio.EstadoPedido {
+  name
+}
+class "EstadoPedidoPuesto" as pedidos.dominio.EstadoPedidoPuesto {
+  name
+}
+class "LineaPedido" as pedidos.dominio.LineaPedido {
+  cantidad
+  precio_unitario
+  producto : Producto
+  calcular_subtotal() -> Decimal
+}
+class "Pedido" as pedidos.dominio.Pedido {
+  cliente
+  codigo_seguimiento : str
+  costo_envio
+  estado
+  fecha_creacion : datetime
+  id : UUID
+  pago : Pago | None
+  subpedidos : list[PedidoPuesto]
+  tipo_entrega
+  agregar_linea(producto: Producto, cantidad: Decimal) -> None
+  buscar_subpedido(subpedido_id: UUID) -> PedidoPuesto
+  calcular_total() -> Decimal
+  cancelar(motivo: str) -> None
+  confirmar() -> None
+  marcar_en_camino() -> None
+  marcar_entregado() -> None
+  marcar_preparado() -> None
+  registrar_pago(pago: Pago) -> None
+}
+class "PedidoPuesto" as pedidos.dominio.PedidoPuesto {
+  comerciante : Comerciante
+  estado
+  fecha_actualizacion : datetime
+  id : UUID
+  lineas : list[LineaPedido]
+  motivo_rechazo : str | None
+  anular() -> None
+  calcular_subtotal() -> Decimal
+  marcar_entregado() -> None
+  marcar_listo() -> None
+  marcar_recogido(repartidor_id: UUID, codigo_recojo: str) -> None
+  rechazar(motivo: str) -> None
+  recibir() -> None
+}
+class "RepositorioPedidos" as pedidos.puertos.RepositorioPedidos {
+  {abstract}buscar_por_id(id: UUID) -> Pedido
+  {abstract}buscar_por_subpedido(subpedido_id: UUID) -> Pedido
+  {abstract}guardar(pedido: Pedido) -> None
+}
+class "ServicioPedidos" as pedidos.servicio.ServicioPedidos {
+  cancelar_por_tiempo_agotado(pedido_id: UUID) -> None
+  confirmar_y_pagar(pedido_id: UUID, celular: str, codigo_aprobacion: str) -> Pedido
+  procesar_rechazo_puesto(subpedido_id: UUID, motivo: str) -> None
+  procesar_webhook_pago(pedido_id: UUID, pago: Pago) -> None
+}
+class "TipoEntrega" as pedidos.dominio.TipoEntrega {
+  name
+}
+pedidos.dominio.Pedido --> pedidos.dominio.Cliente : cliente
+pedidos.dominio.Pedido --> pedidos.dominio.EstadoPedido : estado
+pedidos.dominio.PedidoPuesto --> pedidos.dominio.EstadoPedidoPuesto : estado
+pedidos.dominio.Pedido --> pedidos.dominio.TipoEntrega : tipo_entrega
+@enduml
