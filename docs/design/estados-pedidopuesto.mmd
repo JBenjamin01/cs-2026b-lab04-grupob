@@ -1,0 +1,23 @@
+---
+title: San Camilo en Línea — Máquina de estados de PedidoPuesto (E3)
+---
+stateDiagram-v2
+    direction TB
+    [*] --> PENDIENTE : Pedido.agregarLinea() [primer producto del puesto]
+    PENDIENTE --> RECIBIDO : recibir() [pedido PAGADO]
+    PENDIENTE --> ANULADO : anular() [pedido CANCELADO]
+    RECIBIDO --> LISTO : marcarListo() [todas las líneas empaquetadas]
+    RECIBIDO --> RECHAZADO : rechazar(motivo) [sin stock físico]
+    LISTO --> RECOGIDO : marcarRecogido(repartidorId, codigoRecojo) [código de recojo válido]
+    RECOGIDO --> ENTREGADO : marcarEntregado()
+    ENTREGADO --> [*]
+    RECHAZADO --> [*]
+    ANULADO --> [*]
+
+    note right of RECIBIDO
+        Al entrar: se encola el WhatsApp al comerciante (outbox).
+    end note
+    note right of RECHAZADO
+        Al entrar: reembolso parcial del subtotal del puesto
+        y aviso al cliente; los demás subpedidos siguen (CA-3).
+    end note
