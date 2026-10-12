@@ -1,0 +1,62 @@
+@startuml actividades-consolidar-pedido
+' San Camilo en Línea — E4: preparación y consolidación de un pedido multipuesto (Tabla 7, caso 7)
+' Cambio por revisión con usuario: antes, un puesto sin stock cancelaba todo el pedido;
+' ahora solo se rechaza ese subpedido y se reembolsa su subtotal (CA-3).
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam dpi 120
+skinparam ActivityBackgroundColor #EEF2F8
+skinparam ActivityBorderColor #1A3A5C
+skinparam SwimlaneTitleFontStyle bold
+title San Camilo en Línea — Preparación y consolidación de un pedido multipuesto (E4)
+
+|Cliente|
+start
+:Arma el carrito con productos\nde varios puestos;
+:Confirma y autoriza el cobro con Yape;
+|Sistema|
+:Reserva el stock y solicita el cobro\nal proveedor de pagos;
+if (¿Pago confirmado?) then (sí)
+  :Marca el pedido PAGADO\ny los subpedidos RECIBIDO;
+  :Registra un aviso por puesto (outbox)\ny encola los WhatsApp;
+  fork
+    |Comerciante|
+    :Revisa su subpedido en la PWA;
+    note right: una rama por cada puesto\ndel pedido (se preparan en paralelo)
+    if (¿Tiene todo el producto?) then (sí)
+      :Empaqueta y marca LISTO;
+    else (no)
+      :Marca RECHAZADO con motivo;
+      |Sistema|
+      :Reembolsa el subtotal del puesto\ny avisa al cliente;
+    endif
+  fork again
+    |Sistema|
+    :Envía al cliente el comprobante\ny el código de seguimiento;
+  end fork
+  |Repartidor|
+  :Recibe la ruta de recojo\ncon los puestos LISTO;
+  repeat
+    :Va al puesto y valida\nel código de recojo;
+    :Marca el subpedido RECOGIDO;
+  repeat while (¿Faltan puestos por recorrer?) is (sí) not (no)
+  :Consolida los paquetes\nen el centro de acopio;
+  |Sistema|
+  :Marca el pedido PREPARADO;
+  if (¿Tipo de entrega?) then (delivery)
+    |Repartidor|
+    :Lleva el pedido al domicilio\n(pedido EN_CAMINO);
+  else (recojo en mercado)
+    |Cliente|
+    :Recoge en el centro de acopio\ncon su código;
+  endif
+  |Sistema|
+  :Marca el pedido y los subpedidos ENTREGADO;
+  stop
+else (no)
+  :Libera el stock y cancela el pedido;
+  |Cliente|
+  :Recibe el aviso de pago rechazado;
+  stop
+endif
+@enduml
