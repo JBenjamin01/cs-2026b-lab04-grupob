@@ -1,0 +1,89 @@
+@startuml secuencia-confirmar-pagar
+' San Camilo en Línea — E2: confirmar y pagar un pedido multipuesto con Yape (HU-03, CA-1 y CA-2)
+' Regla C1: cada mensaje dirigido a un objeto es una operación de su clase en clases.puml.
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam dpi 120
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+autonumber
+title San Camilo en Línea — Confirmar y pagar un pedido multipuesto con Yape (E2)
+
+actor "Cliente" as CL
+participant "PWA" as UI
+participant "PedidosController" as C
+participant "ServicioPedidos" as S
+participant "RepositorioPedidos" as R
+participant "p : Pedido" as P
+participant "pp : PedidoPuesto" as PP
+participant "pr : Producto" as PR
+participant "PasarelaPago\n(YapeAdapter)" as G
+participant "NotificadorMensajeria\n(WhatsAppAdapter)" as N
+
+CL -> UI : Confirmar y pagar con Yape\n(celular + código de aprobación)
+UI -> C : POST /api/v1/pedidos/{id}/pago\n(Idempotency-Key)
+activate C
+C -> S : confirmarYPagar(pedidoId, celular, codigoAprobacion)
+activate S
+S -> R : buscarPorId(pedidoId)
+R --> S : p
+S -> P : confirmar()
+activate P
+loop por cada línea de cada subpedido
+  P -> PR : reservar(cantidad)
+  PR --> P : ok
+end
+P --> S : estado = PENDIENTE_PAGO
+deactivate P
+S -> P : calcularTotal()
+P --> S : total
+S -> G : iniciarCobro(pedidoId, total, celular, codigoAprobacion)
+G --> S : pago
+
+alt pago.estaConfirmado()
+  S -> P : registrarPago(pago)
+  activate P
+  loop por cada subpedido
+    P -> PP : recibir()
+    PP --> P : estado = RECIBIDO
+  end
+  P --> S : estado = PAGADO
+  deactivate P
+  S -> R : guardar(p)
+  note right of R
+    Misma transacción: pedido PAGADO +
+    notificaciones pendientes (outbox, ADR-001)
+  end note
+  loop por cada subpedido
+    S ->> N : notificarComerciante(celular, resumen)
+  end
+  note right of N : asíncrono: Celery con reintentos;\nno bloquea la respuesta (QA-03)
+  S --> C : p (PAGADO)
+  C --> UI : 200 OK + codigoSeguimiento
+else pago rechazado o expirado
+  S -> P : cancelar("pago rechazado")
+  activate P
+  loop por cada línea de cada subpedido
+    P -> PR : liberar(cantidad)
+    PR --> P : ok
+  end
+  loop por cada subpedido
+    P -> PP : anular()
+    PP --> P : estado = ANULADO
+  end
+  P --> S : estado = CANCELADO
+  deactivate P
+  S -> R : guardar(p)
+  S --> C : p (CANCELADO)
+  C --> UI : 402 Pago rechazado
+end
+deactivate S
+deactivate C
+UI --> CL : Muestra el resultado
+
+note over S, G
+  Si el proveedor responde PENDIENTE, el resultado llega luego por el webhook idempotente (ADR-002)
+  y procesarWebhookPago(pedidoId, pago) ejecuta la misma rama del alt. Si en 15 min no llega, Celery beat invoca
+  cancelarPorTiempoAgotado(pedidoId), que sigue la rama de rechazo (CA-2).
+end note
+@enduml
