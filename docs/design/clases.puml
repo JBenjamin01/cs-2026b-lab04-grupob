@@ -1,0 +1,195 @@
+@startuml clases-pedidos
+' San Camilo en Línea — Diagrama de clases de diseño (E1, Lab 05)
+' Historia: HU-03 (docs/design/historia.md). Arquitectura: ADR-001 (monolito modular,
+' puertos y adaptadores), ADR-002 (estados separados de pedido y pago), ADR-004 (puertos con tipos neutrales).
+' Supuesto: el código de aprobación de Yape no se almacena; solo es parámetro de iniciarCobro().
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam dpi 110
+skinparam packageStyle rectangle
+skinparam classBackgroundColor #EEF2F8
+skinparam classBorderColor #1A3A5C
+skinparam packageBorderColor #7F7F7F
+skinparam nodesep 30
+skinparam ranksep 45
+hide empty members
+title San Camilo en Línea — Módulos Pedidos, Pagos, Catálogo, Notificaciones y Reparto (diseño)
+
+package "pedidos" {
+  class Cliente {
+    - id: UUID
+    - nombre: String
+    - celular: String
+    - direccion: String
+  }
+  class Pedido {
+    - id: UUID
+    - codigoSeguimiento: String
+    - fechaCreacion: DateTime
+    - estado: EstadoPedido
+    - tipoEntrega: TipoEntrega
+    - costoEnvio: Decimal
+    + agregarLinea(producto: Producto, cantidad: Decimal): void
+    + calcularTotal(): Decimal
+    + confirmar(): void
+    + registrarPago(pago: Pago): void
+    + cancelar(motivo: String): void
+    + buscarSubpedido(subpedidoId: UUID): PedidoPuesto
+    + marcarPreparado(): void
+    + marcarEnCamino(): void
+    + marcarEntregado(): void
+  }
+  class PedidoPuesto {
+    - id: UUID
+    - estado: EstadoPedidoPuesto
+    - motivoRechazo: String [0..1]
+    - fechaActualizacion: DateTime
+    + calcularSubtotal(): Decimal
+    + recibir(): void
+    + marcarListo(): void
+    + rechazar(motivo: String): void
+    + marcarRecogido(repartidorId: UUID, codigoRecojo: String): void
+    + marcarEntregado(): void
+    + anular(): void
+  }
+  class LineaPedido {
+    - cantidad: Decimal
+    - precioUnitario: Decimal
+    + calcularSubtotal(): Decimal
+  }
+  enum EstadoPedido {
+    CREADO
+    PENDIENTE_PAGO
+    PAGADO
+    PREPARADO
+    EN_CAMINO
+    ENTREGADO
+    CANCELADO
+  }
+  enum EstadoPedidoPuesto {
+    PENDIENTE
+    RECIBIDO
+    LISTO
+    RECOGIDO
+    ENTREGADO
+    RECHAZADO
+    ANULADO
+  }
+  enum TipoEntrega {
+    RECOJO_MERCADO
+    DELIVERY
+  }
+  class ServicioPedidos <<servicio>> {
+    + confirmarYPagar(pedidoId: UUID, celular: String, codigoAprobacion: String): Pedido
+    + procesarWebhookPago(pedidoId: UUID, pago: Pago): void
+    + procesarRechazoPuesto(subpedidoId: UUID, motivo: String): void
+    + cancelarPorTiempoAgotado(pedidoId: UUID): void
+  }
+  interface RepositorioPedidos <<puerto>> {
+    + buscarPorId(id: UUID): Pedido
+    + buscarPorSubpedido(subpedidoId: UUID): Pedido
+    + guardar(pedido: Pedido): void
+  }
+}
+
+package "catalogo" {
+  class Comerciante {
+    - id: UUID
+    - nombre: String
+    - numeroPuesto: String
+    - celular: String
+  }
+  class Producto {
+    - id: UUID
+    - nombre: String
+    - precio: Decimal
+    - unidadMedida: String
+    - stockDisponible: Decimal
+    - disponible: Boolean
+    + reservar(cantidad: Decimal): void
+    + liberar(cantidad: Decimal): void
+  }
+}
+
+package "pagos" {
+  class Pago {
+    - id: UUID
+    - pedidoId: UUID
+    - monto: Decimal
+    - referenciaProveedor: String
+    - estado: EstadoPago
+    - fechaHora: DateTime
+    + estaConfirmado(): Boolean
+  }
+  enum EstadoPago {
+    PENDIENTE
+    CONFIRMADO
+    RECHAZADO
+    EXPIRADO
+  }
+  interface PasarelaPago <<puerto>> {
+    + iniciarCobro(pedidoId: UUID, monto: Decimal, celular: String, codigoAprobacion: String): Pago
+    + reembolsar(pagoId: UUID, monto: Decimal): void
+  }
+  class YapeAdapter <<adaptador>>
+}
+
+package "notificaciones" {
+  interface NotificadorMensajeria <<puerto>> {
+    + notificarComerciante(celular: String, resumen: String): void
+    + notificarCliente(celular: String, mensaje: String): void
+  }
+  class WhatsAppAdapter <<adaptador>>
+}
+
+package "reparto" {
+  class Repartidor {
+    - id: UUID
+    - nombre: String
+    - celular: String
+    - disponible: Boolean
+    + tomarPedido(pedido: Pedido): void
+  }
+}
+
+' --- Relaciones estructurales (multiplicidad en ambos extremos, regla C3) ---
+Pedido "0..*" --> "1" Cliente : pertenece a >
+Pedido "1" *-- "1..*" PedidoPuesto : se divide en >
+PedidoPuesto "1" *-- "1..*" LineaPedido : contiene >
+LineaPedido "0..*" --> "1" Producto : referencia >
+PedidoPuesto "0..*" --> "1" Comerciante : lo atiende >
+Producto "0..*" --> "1" Comerciante : publicado por >
+Pedido "1" --> "0..1" Pago : se paga con >
+Repartidor "0..1" --> "0..*" Pedido : reparte >
+
+Pedido --> EstadoPedido
+Pedido --> TipoEntrega
+PedidoPuesto --> EstadoPedidoPuesto
+Pago --> EstadoPago
+
+' --- Puertos y adaptadores (ADR-001) ---
+PasarelaPago <|.. YapeAdapter
+NotificadorMensajeria <|.. WhatsAppAdapter
+
+' --- Dependencias del servicio de aplicación ---
+ServicioPedidos ..> Pedido
+ServicioPedidos ..> RepositorioPedidos
+ServicioPedidos ..> PasarelaPago
+ServicioPedidos ..> NotificadorMensajeria
+
+' --- Solo para la disposición del dibujo (no son relaciones UML) ---
+EstadoPedidoPuesto -[hidden]down- Pago
+LineaPedido -[hidden]down- PasarelaPago
+EstadoPedidoPuesto -[hidden]down- NotificadorMensajeria
+
+note bottom of Pago
+  Pago guarda solo pedidoId (no una referencia a Pedido):
+  así pagos no depende de pedidos (C4, ADR-002).
+end note
+note bottom of NotificadorMensajeria
+  Los puertos reciben tipos neutrales (String, UUID, Decimal),
+  nunca clases de pedidos: evita el ciclo
+  pedidos <-> notificaciones (ADR-004).
+end note
+@enduml
