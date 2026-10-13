@@ -1,4 +1,4 @@
-# San Camilo en Línea — Laboratorio 04: Fundamentos de arquitectura de software
+# San Camilo en Línea — Laboratorios 04 y 05: arquitectura y diseño UML
 
 Construcción de Software · EPIS-UNSA · 2026-B · Grupo B
 
@@ -61,8 +61,8 @@ flowchart TB
     API --> M1 & M2 & M3 & M5
 
     M2 -->|"consulta productos"| M1
+    M2 -->|"encola aviso"| M4
     M2 -->|"iniciar cobro"| M3
-    M3 -->|"evento PedidoPagado"| M4
     M5 -->|"consulta pedidos"| M2
 
     M1 --> CACHE
@@ -108,6 +108,7 @@ Resultado de la [matriz de decisión](docs/architecture/matriz-decision.md):
 - [ADR-001: Monolito modular en Django](docs/architecture/adr/001-estilo-arquitectonico.md)
 - [ADR-002: PostgreSQL con un esquema por módulo](docs/architecture/adr/002-base-de-datos.md)
 - [ADR-003: PWA offline-first](docs/architecture/adr/003-estrategia-offline-pwa.md)
+- [ADR-004: Puertos con tipos neutrales, sin ciclos entre módulos](docs/architecture/adr/004-puertos-sin-ciclos.md) (Lab 05)
 
 ## Reflexión sobre el uso de la IA
 
@@ -128,20 +129,98 @@ en lugar de aceptar cifras plausibles, y a revisar la documentación oficial ant
 cierta una capacidad de un servicio externo. La IA aceleró la redacción y los diagramas, pero
 las decisiones y su verificación fueron nuestras.
 
+---
+
+## Diseño UML (Lab 05)
+
+Diseño detallado de la historia crítica **HU-03: pedido a varios puestos con pago único**
+([historia.md](docs/design/historia.md)), coherente con ADR-001, ADR-002 y el nuevo
+[ADR-004](docs/architecture/adr/004-puertos-sin-ciclos.md). Los diagramas se escriben como código
+(PlantUML y Mermaid) y se verifican con las reglas de consistencia C1–C5.
+
+| Integrante | Rol en el Lab 05 | Entregables |
+|------------|------------------|-------------|
+| Jhonatan Benjamin Mamani Céspedes | Historia, diagramas de clases, secuencia y estados; README y entrega | E1, E2, E3, E8 |
+| Jafet Martin Llave Aguilar | Actividades, paquetes y ADR-004; código, round-trip y revisión de consistencia | E4, E5, E6, E7 |
+
+### Máquina de estados de `PedidoPuesto` (E3)
+
+```mermaid
+---
+title: San Camilo en Línea — Máquina de estados de PedidoPuesto (E3)
+---
+stateDiagram-v2
+    direction TB
+    [*] --> PENDIENTE : Pedido.agregarLinea() [primer producto del puesto]
+    PENDIENTE --> RECIBIDO : recibir() [pedido PAGADO]
+    PENDIENTE --> ANULADO : anular() [pedido CANCELADO]
+    RECIBIDO --> LISTO : marcarListo() [todas las líneas empaquetadas]
+    RECIBIDO --> RECHAZADO : rechazar(motivo) [sin stock físico]
+    LISTO --> RECOGIDO : marcarRecogido(repartidorId, codigoRecojo) [código de recojo válido]
+    RECOGIDO --> ENTREGADO : marcarEntregado()
+    ENTREGADO --> [*]
+    RECHAZADO --> [*]
+    ANULADO --> [*]
+
+    note right of RECIBIDO
+        Al entrar: se encola el WhatsApp al comerciante (outbox).
+    end note
+    note right of RECHAZADO
+        Al entrar: reembolso parcial del subtotal del puesto
+        y aviso al cliente; los demás subpedidos siguen (CA-3).
+    end note
+```
+
+### Entregables
+
+| Código | Entregable | Fuente | Imagen |
+|--------|------------|--------|--------|
+| E1 | Historia de usuario y diagrama de clases | [historia.md](docs/design/historia.md) · [clases.puml](docs/design/clases.puml) | [PNG](docs/design/img/clases-pedidos.png) |
+| E2 | Secuencia "confirmar y pagar" | [secuencia-confirmar-pagar.puml](docs/design/secuencia-confirmar-pagar.puml) | [PNG](docs/design/img/secuencia-confirmar-pagar.png) |
+| E3 | Máquina de estados de PedidoPuesto | [estados-pedidopuesto.mmd](docs/design/estados-pedidopuesto.mmd) | [PNG](docs/design/img/estados-pedidopuesto.png) |
+| E4 | Actividades: consolidar un pedido multipuesto | [actividades-consolidar-pedido.puml](docs/design/actividades-consolidar-pedido.puml) | [PNG](docs/design/img/actividades-consolidar-pedido.png) |
+| E5 | Paquetes y ADR-004 | [paquetes.puml](docs/design/paquetes.puml) · [ADR-004](docs/architecture/adr/004-puertos-sin-ciclos.md) | [PNG](docs/design/img/paquetes.png) |
+| E6 | Código, ingeniería inversa y round-trip | [src/](src/) · [round-trip.md](docs/design/round-trip.md) · [pyreverse](docs/design/classes_pedidos_pyreverse.puml) | [clases](docs/design/img/classes_pedidos.png) · [paquetes](docs/design/img/packages_sancamilo.png) |
+| E7 | Consistencia C1–C5 y bitácora de IA | [consistencia.md](docs/design/consistencia.md) · [bitacora-ia.md](docs/design/bitacora-ia.md) | — |
+
+### Cómo regenerar y probar
+
+```bash
+# Diagramas
+java -jar plantuml.jar -tpng -o img docs/design/*.puml
+mmdc -i docs/design/estados-pedidopuesto.mmd -o docs/design/img/estados-pedidopuesto.png
+# Pruebas (una por transición de la máquina de estados + criterios de aceptación)
+pip install pytest pylint
+python -m pytest -q tests
+# Ingeniería inversa
+cd src && pyreverse -o puml -p pedidos pedidos
+```
+
+### Lo que nos dejó la revisión con IA
+
+La IA aceleró el borrador de los diagramas y del código, pero la revisión con las reglas C1–C5 encontró
+problemas reales (operaciones inexistentes en la máquina de estados, dos ciclos entre paquetes, nombres
+distintos a ADR-002) y también **falsos positivos**: pedir que la notificación a WhatsApp fuera síncrona,
+o marcar como error la navegación `Pedido → PedidoPuesto → LineaPedido → Producto`. Cada hallazgo se
+verificó antes de aceptarlo ([consistencia.md](docs/design/consistencia.md)).
+
 ## Estructura del repositorio
 
 ```
-cs-2026b-lab04-grupoXX/
+cs-2026b-lab04-grupob/
 ├── README.md
-└── docs/architecture/
-    ├── drivers.md
-    ├── matriz-decision.md
-    ├── bitacora-ia.md
-    ├── anexos/            # respuestas completas de Gemini y ChatGPT
-    ├── adr/               # 000-plantilla, 001, 002, 003
-    └── diagramas/
-        ├── arquitectura.mmd
-        ├── alternativa.puml
-        ├── despliegue.py
-        └── img/           # PNG de E2, E3, E5 y E6
+├── docs/
+│   ├── architecture/          # Laboratorio 04 (+ ADR-004 del Lab 05)
+│   │   ├── drivers.md, matriz-decision.md, bitacora-ia.md
+│   │   ├── anexos/            # respuestas completas de Gemini y ChatGPT
+│   │   ├── adr/               # 000-plantilla, 001, 002, 003, 004
+│   │   └── diagramas/         # arquitectura.mmd, alternativa.puml, despliegue.py, img/
+│   └── design/                # Laboratorio 05
+│       ├── historia.md, clases.puml, secuencia-confirmar-pagar.puml
+│       ├── estados-pedidopuesto.mmd, actividades-consolidar-pedido.puml, paquetes.puml
+│       ├── classes_pedidos_pyreverse.puml, packages_sancamilo_pyreverse.puml
+│       ├── round-trip.md, consistencia.md, bitacora-ia.md
+│       └── img/               # PNG de todos los diagramas
+├── src/                       # E6: comun, catalogo, pagos, notificaciones, pedidos, reparto
+└── tests/                     # E6: pruebas derivadas de la máquina de estados y de HU-03
 ```
