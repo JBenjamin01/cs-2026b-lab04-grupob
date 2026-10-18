@@ -1,0 +1,66 @@
+workspace "San Camilo en Línea" "Modelo C4 de la plataforma de pedidos del Mercado San Camilo (Arequipa)" {
+
+    !identifiers hierarchical
+
+    model {
+        // ---------- Personas (drivers.md, Lab 04) ----------
+        cliente = person "Cliente" "Compra productos de varios puestos del Mercado San Camilo en un solo pedido, con recojo o delivery."
+        comerciante = person "Comerciante" "Dueño o encargado de un puesto; publica sus productos y atiende su parte de cada pedido."
+        repartidor = person "Repartidor" "Recoge los productos en los puestos y los entrega al cliente."
+
+        // ---------- Sistema propio ----------
+        sc = softwareSystem "San Camilo en Línea" "Permite pedir a varios puestos del mercado en un solo pedido y pagarlo una sola vez con Yape."
+
+        // ---------- Sistemas externos ----------
+        pasarela = softwareSystem "Proveedor de pagos" "Procesa el cobro con Yape; Yape no ofrece una API pública abierta (R-05)." "Externo"
+        whatsapp = softwareSystem "WhatsApp Business Platform" "Entrega al comerciante la confirmación de su parte del pedido (plantillas aprobadas)." "Externo"
+
+        // ---------- Relaciones nivel 1 ----------
+        cliente -> sc "Arma pedidos con productos de varios puestos y los paga con Yape"
+        comerciante -> sc "Publica sus productos y marca cuáles se agotaron"
+        repartidor -> sc "Consulta los puestos a recorrer y marca las entregas"
+        sc -> pasarela "Solicita el cobro del pedido" "HTTPS/JSON"
+        pasarela -> sc "Notifica el resultado del cobro" "HTTPS/JSON"
+        sc -> whatsapp "Envía la confirmación de cada subpedido" "HTTPS/JSON"
+        whatsapp -> comerciante "Entrega el aviso del pedido en su WhatsApp"
+    }
+
+    views {
+        systemContext sc "Contexto" "Nivel 1: San Camilo en Línea y su entorno." {
+            include *
+            autolayout lr
+        }
+
+        styles {
+            element "Person" {
+                shape person
+                background #08427B
+                color #ffffff
+            }
+            element "Software System" {
+                background #1168BD
+                color #ffffff
+            }
+            element "Externo" {
+                background #999999
+            }
+            element "Container" {
+                background #438DD5
+                color #ffffff
+            }
+            element "Component" {
+                background #85BBF0
+                color #000000
+            }
+            element "Database" {
+                shape cylinder
+            }
+            element "Queue" {
+                shape pipe
+            }
+            element "Web Browser" {
+                shape WebBrowser
+            }
+        }
+    }
+}
