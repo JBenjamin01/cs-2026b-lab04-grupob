@@ -9,7 +9,16 @@ workspace "San Camilo en Línea" "Modelo C4 de la plataforma de pedidos del Merc
         repartidor = person "Repartidor" "Recoge los productos en los puestos y los entrega al cliente."
 
         // ---------- Sistema propio ----------
-        sc = softwareSystem "San Camilo en Línea" "Permite pedir a varios puestos del mercado en un solo pedido y pagarlo una sola vez con Yape."
+        sc = softwareSystem "San Camilo en Línea" "Permite pedir a varios puestos del mercado en un solo pedido y pagarlo una sola vez con Yape." {
+
+            // ---------- Contenedores (ADR-001, ADR-002, ADR-003; despliegue.py del Lab 04) ----------
+            pwa = container "PWA offline-first" "Interfaz de cliente, comerciante y repartidor. Publica un producto en 3 toques y guarda las acciones sin conexión para sincronizarlas después." "Plantillas Django + JavaScript, Service Worker, IndexedDB" "Web Browser"
+            api = container "API San Camilo" "Monolito modular con 5 módulos de dominio; expone los casos de uso y los webhooks." "Python / Django + Gunicorn"
+            worker = container "Worker de notificaciones" "Envía los avisos pendientes a WhatsApp con reintentos y espera creciente." "Celery"
+            beat = container "Planificador" "Reencola cada 5 min los avisos pendientes y cancela los pedidos sin pago a los 15 min." "Celery beat"
+            cola = container "Cola y caché" "Broker de tareas de Celery y caché del catálogo." "Redis" "Queue"
+            db = container "Base de datos" "Una base con un esquema por módulo; guarda pedidos, pagos y avisos pendientes en una sola transacción." "PostgreSQL" "Database"
+        }
 
         // ---------- Sistemas externos ----------
         pasarela = softwareSystem "Proveedor de pagos" "Procesa el cobro con Yape; Yape no ofrece una API pública abierta (R-05)." "Externo"
@@ -23,10 +32,28 @@ workspace "San Camilo en Línea" "Modelo C4 de la plataforma de pedidos del Merc
         pasarela -> sc "Notifica el resultado del cobro" "HTTPS/JSON"
         sc -> whatsapp "Envía la confirmación de cada subpedido" "HTTPS/JSON"
         whatsapp -> comerciante "Entrega el aviso del pedido en su WhatsApp"
+
+        // ---------- Relaciones nivel 2 ----------
+        cliente -> sc.pwa "Explora el catálogo, arma su pedido y paga" "HTTPS"
+        comerciante -> sc.pwa "Publica productos y marca agotados, incluso sin conexión" "HTTPS"
+        repartidor -> sc.pwa "Consulta su ruta y marca entregas" "HTTPS"
+        sc.pwa -> sc.api "Envía solicitudes y sincroniza las acciones guardadas" "HTTPS/JSON (con clave de idempotencia)"
+        sc.api -> sc.db "Lee y escribe en el esquema de cada módulo" "SQL/TCP"
+        sc.api -> sc.cola "Cachea el catálogo y encola los envíos" "Redis protocol"
+        sc.worker -> sc.cola "Consume las tareas de envío" "Redis protocol"
+        sc.worker -> sc.db "Lee los avisos pendientes y los marca como enviados" "SQL/TCP"
+        sc.beat -> sc.cola "Programa los reintentos cada 5 minutos" "Redis protocol"
+        sc.worker -> whatsapp "Envía la confirmación al comerciante" "HTTPS/JSON"
+        sc.api -> pasarela "Solicita el cobro" "HTTPS/JSON"
+        pasarela -> sc.api "Notifica el resultado del cobro (webhook idempotente)" "HTTPS/JSON"
     }
 
     views {
         systemContext sc "Contexto" "Nivel 1: San Camilo en Línea y su entorno." {
+            include *
+            autolayout lr
+        }
+        container sc "Contenedores" "Nivel 2: contenedores de San Camilo en Línea." {
             include *
             autolayout lr
         }
