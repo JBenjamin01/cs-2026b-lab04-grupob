@@ -71,6 +71,32 @@ workspace "San Camilo en Línea" "Modelo C4 de la plataforma de pedidos del Merc
         sc.api.reparto -> sc.db "Lee y escribe el esquema reparto" "SQL"
         sc.api.catalogo -> sc.cola "Cachea el catálogo" "Redis protocol"
         sc.api.notificaciones -> sc.cola "Encola el envío" "Redis protocol"
+
+        // ---------- Despliegue (ADR-001: systemd en un VPS; ADR-002: respaldo fuera del VPS) ----------
+        produccion = deploymentEnvironment "Producción" {
+            celular = deploymentNode "Celular Android de gama baja" "Aprox. 2 GB de RAM y red 3G intermitente (R-06)" "Android / Chrome" {
+                pwa = containerInstance sc.pwa
+            }
+            vps = deploymentNode "VPS único" "Un solo servidor de bajo costo (R-03)" "Ubuntu Server 24.04 LTS, 2 vCPU, 4 GB RAM" {
+                nginx = infrastructureNode "Nginx" "Termina HTTPS y sirve los archivos estáticos." "Nginx"
+                servicios = deploymentNode "Servicios del monolito" "Un servicio por proceso, con reinicio automático." "systemd" {
+                    api = containerInstance sc.api
+                    worker = containerInstance sc.worker
+                    beat = containerInstance sc.beat
+                    cola = containerInstance sc.cola
+                    db = containerInstance sc.db
+                }
+                monitoreo = infrastructureNode "Monitoreo básico" "Alerta si la aplicación deja de responder (corre en el mismo VPS: trade-off aceptado en el MVP)." "Grafana"
+            }
+            respaldo = deploymentNode "Almacenamiento externo" "Copia fuera del VPS (ADR-002)" "Cron + pg_dump diario" {
+                copia = infrastructureNode "Copia diaria de PostgreSQL" "Permite restaurar ante la pérdida total del disco." "pg_dump"
+            }
+        }
+
+        // Relaciones entre nodos de infraestructura (se declaran fuera del bloque del entorno)
+        produccion.vps.nginx -> produccion.vps.servicios.api "Reenvía las peticiones" "HTTP"
+        produccion.vps.monitoreo -> produccion.vps.nginx "Verifica que responda" "HTTPS"
+        produccion.vps.servicios.db -> produccion.respaldo.copia "Respaldo diario" "pg_dump"
     }
 
     views {
@@ -97,6 +123,10 @@ workspace "San Camilo en Línea" "Modelo C4 de la plataforma de pedidos del Merc
             sc.api.notificaciones -> sc.cola "Encola el envío (asíncrono)"
             sc.worker -> sc.cola "Toma la tarea de envío"
             sc.worker -> whatsapp "Envía la confirmación con reintentos"
+            autolayout lr
+        }
+        deployment sc produccion "Despliegue" "Despliegue en producción del MVP: un solo VPS." {
+            include *
             autolayout lr
         }
 
