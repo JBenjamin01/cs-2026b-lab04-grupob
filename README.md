@@ -1,4 +1,4 @@
-# San Camilo en Línea — Laboratorios 04 y 05: arquitectura y diseño UML
+# San Camilo en Línea — Laboratorios 04, 05 y 06: arquitectura, diseño UML y modelo C4
 
 Construcción de Software · EPIS-UNSA · 2026-B · Grupo B
 
@@ -204,6 +204,86 @@ distintos a ADR-002) y también **falsos positivos**: pedir que la notificación
 o marcar como error la navegación `Pedido → PedidoPuesto → LineaPedido → Producto`. Cada hallazgo se
 verificó antes de aceptarlo ([consistencia.md](docs/design/consistencia.md)).
 
+---
+
+## Arquitectura C4 (Lab 06)
+
+Modelo C4 de San Camilo en Línea escrito como código en un **único archivo**,
+[workspace.dsl](docs/architecture/c4/workspace.dsl) (Structurizr DSL), del que se derivan las cinco
+vistas. Es coherente con ADR-001 a ADR-004 y con el diseño UML del Lab 05 (los componentes son los
+paquetes de [paquetes.puml](docs/design/paquetes.puml); el nivel 4, código, es el diagrama de
+clases [clases.puml](docs/design/clases.puml)).
+
+| Integrante | Rol en el Lab 06 | Entregables |
+|------------|------------------|-------------|
+| Jhonatan Benjamin Mamani Céspedes | Inventario y modelo (contexto, contenedores y componentes); README y entrega | E1, E2, E3, E8 |
+| Jafet Martin Llave Aguilar | Vista dinámica y despliegue; exportación, revisión con IA y bitácora | E4, E5, E6, E7 |
+
+### Diagrama de contexto (nivel 1)
+
+```mermaid
+graph LR
+    CL["Cliente<br/>[Persona]"]
+    CO["Comerciante<br/>[Persona]"]
+    RE["Repartidor<br/>[Persona]"]
+    SC["San Camilo en Línea<br/>[Sistema de software]"]
+    PP["Proveedor de pagos<br/>[Sistema externo]"]
+    WA["WhatsApp Business Platform<br/>[Sistema externo]"]
+
+    CL -. "Arma pedidos con productos de varios puestos y los paga con Yape" .-> SC
+    CO -. "Publica sus productos y marca cuáles se agotaron" .-> SC
+    RE -. "Consulta los puestos a recorrer y marca las entregas" .-> SC
+    SC -. "Solicita el cobro del pedido [HTTPS/JSON]" .-> PP
+    PP -. "Notifica el resultado del cobro [HTTPS/JSON]" .-> SC
+    SC -. "Envía la confirmación de cada subpedido [HTTPS/JSON]" .-> WA
+    WA -. "Entrega el aviso del pedido en su WhatsApp" .-> CO
+```
+
+### Las cinco vistas
+
+| Nivel / vista | Imagen | C4-PlantUML | Mermaid |
+|---------------|--------|-------------|---------|
+| 1. Contexto | [PNG](docs/architecture/c4/img/structurizr-Contexto.png) | [puml](docs/architecture/c4/export/structurizr-Contexto.puml) | [mmd](docs/architecture/c4/export/structurizr-Contexto.mmd) |
+| 2. Contenedores | [PNG](docs/architecture/c4/img/structurizr-Contenedores.png) | [puml](docs/architecture/c4/export/structurizr-Contenedores.puml) | [mmd](docs/architecture/c4/export/structurizr-Contenedores.mmd) |
+| 3. Componentes de la API | [PNG](docs/architecture/c4/img/structurizr-Componentes.png) | [puml](docs/architecture/c4/export/structurizr-Componentes.puml) | [mmd](docs/architecture/c4/export/structurizr-Componentes.mmd) |
+| Dinámica: confirmar y pagar | [PNG](docs/architecture/c4/img/structurizr-ConfirmarYPagar.png) | [puml](docs/architecture/c4/export/structurizr-ConfirmarYPagar.puml) | [mmd](docs/architecture/c4/export/structurizr-ConfirmarYPagar.mmd) |
+| Despliegue: producción | [PNG](docs/architecture/c4/img/structurizr-Despliegue.png) | [puml](docs/architecture/c4/export/structurizr-Despliegue.puml) | [mmd](docs/architecture/c4/export/structurizr-Despliegue.mmd) |
+
+### Entregables
+
+| Código | Entregable | Archivo |
+|--------|------------|---------|
+| E1 | Inventario y contexto | [inventario.md](docs/architecture/c4/inventario.md) · [workspace.dsl](docs/architecture/c4/workspace.dsl) |
+| E2 | Contenedores | [workspace.dsl](docs/architecture/c4/workspace.dsl) |
+| E3 | Componentes | [workspace.dsl](docs/architecture/c4/workspace.dsl) |
+| E4 | Vista dinámica | [workspace.dsl](docs/architecture/c4/workspace.dsl) · [comparacion.md](docs/architecture/c4/comparacion.md) |
+| E5 | Despliegue | [workspace.dsl](docs/architecture/c4/workspace.dsl) |
+| E6 | Exportación y comparación de herramientas | [export/](docs/architecture/c4/export/) · [img/](docs/architecture/c4/img/) · [contexto-manual.puml](docs/architecture/c4/contexto-manual.puml) · [comparacion.md](docs/architecture/c4/comparacion.md) |
+| E7 | Revisión, comunicación y bitácora de IA | [revision-c4.md](docs/architecture/c4/revision-c4.md) · [explicacion.md](docs/architecture/c4/explicacion.md) · [bitacora-ia.md](docs/architecture/c4/bitacora-ia.md) |
+
+### Cómo validar y regenerar las vistas
+
+```bash
+# Validar el modelo
+structurizr.sh validate -w docs/architecture/c4/workspace.dsl
+# Exportar a C4-PlantUML y Mermaid
+structurizr.sh export -w docs/architecture/c4/workspace.dsl -f plantuml/c4plantuml -o docs/architecture/c4/export
+structurizr.sh export -w docs/architecture/c4/workspace.dsl -f mermaid -o docs/architecture/c4/export
+# Imágenes PNG
+java -jar plantuml.jar -tpng -o ../img docs/architecture/c4/export/*.puml
+# Navegación interactiva (Structurizr Lite en http://localhost:8080)
+docker run -it --rm -p 8080:8080 -v "$PWD/docs/architecture/c4":/usr/local/structurizr structurizr/lite
+```
+
+### Lo que aprendimos del modelo
+
+Pasar de UML a C4 nos obligó a decir **qué es cada caja**: un contenedor es algo que se despliega
+por separado (la API, el worker, Redis, PostgreSQL), no un contenedor Docker; nuestro MVP corre con
+systemd en un único VPS. Modelar una sola vez (`workspace.dsl`) evitó tener cinco diagramas
+sueltos que se desactualicen. Revisión con IA y falsos positivos:
+[revision-c4.md](docs/architecture/c4/revision-c4.md).
+
+
 ## Estructura del repositorio
 
 ```
@@ -215,6 +295,7 @@ cs-2026b-lab04-grupob/
 │   │   ├── anexos/            # respuestas completas de Gemini y ChatGPT
 │   │   ├── adr/               # 000-plantilla, 001, 002, 003, 004
 │   │   └── diagramas/         # arquitectura.mmd, alternativa.puml, despliegue.py, img/
+│   │   └── c4/                # Laboratorio 06: workspace.dsl, export/, img/, inventario.md, revision-c4.md...
 │   └── design/                # Laboratorio 05
 │       ├── historia.md, clases.puml, secuencia-confirmar-pagar.puml
 │       ├── estados-pedidopuesto.mmd, actividades-consolidar-pedido.puml, paquetes.puml
