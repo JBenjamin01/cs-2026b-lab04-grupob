@@ -6,10 +6,11 @@ import pytest
 
 from arranque import crear_servicio_pedidos
 from catalogo.modelos import Comerciante, Producto
+from comun.excepciones import EstadoInvalidoError
 from pagos.modelos import EstadoPago, Pago, PasarelaPago
 from pagos.pasarelas import FabricaPasarelas, PlinAdapter, YapeAdapter
 from pedidos.externos import PlinClient, YapeSDK
-from pedidos.pedido import Cliente, Pedido
+from pedidos.pedido import Cliente, Pedido, PedidoPuesto
 from pedidos.servicio import ServicioPedidos
 
 
@@ -75,3 +76,39 @@ def test_los_montos_se_redondean_al_centimo(productos):
         p.agregar_linea(papa, Decimal("0.75"))
         app.servicio.confirmar_y_pagar(p, medio)
     assert (yape.montos, plin.montos) == ([Decimal("2.63")], [263])
+
+
+# ================================ E3: STATE ================================
+def test_state_impide_transiciones_invalidas_del_subpedido(productos):
+    pp = PedidoPuesto(productos[0].comerciante)
+    with pytest.raises(EstadoInvalidoError):
+        pp.marcar_listo()                    # PENDIENTE -> LISTO no existe en la máquina del Lab 05
+    pp.recibir()
+    pp.rechazar("sin stock")
+    with pytest.raises(EstadoInvalidoError):
+        pp.marcar_listo()                    # RECHAZADO es final
+    assert pp.estado == "RECHAZADO"
+
+
+def test_state_del_pedido_bloquea_cambios_despues_de_pagar(productos):
+    app = crear_servicio_pedidos()
+    p = nuevo_pedido(productos)
+    app.servicio.confirmar_y_pagar(p, "YAPE")
+    with pytest.raises(EstadoInvalidoError):
+        p.agregar_linea(productos[0], Decimal("1"))
+    with pytest.raises(EstadoInvalidoError):
+        p.cancelar("me arrepentí")           # un pedido PAGADO se gestiona por reembolso (CA-3)
+
+
+def test_state_ciclo_completo_hasta_entregado(productos):
+    app = crear_servicio_pedidos()
+    p = nuevo_pedido(productos, "DELIVERY", "Cercado")
+    app.servicio.confirmar_y_pagar(p, "YAPE")
+    for pp in p.subpedidos:
+        pp.marcar_listo()
+        pp.marcar_recogido(uuid4(), "QR-1")
+    p.marcar_preparado()
+    p.marcar_en_camino()
+    p.marcar_entregado()
+    assert p.estado == "ENTREGADO"
+    assert [pp.estado for pp in p.subpedidos] == ["ENTREGADO", "ENTREGADO"]
