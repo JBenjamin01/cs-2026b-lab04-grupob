@@ -3,9 +3,6 @@
 Lista aplicada: Tabla 3 de la guía (General, Elementos, Relaciones). Las cinco vistas salen de
 `workspace.dsl`.
 
-> Después de generar los PNG, abran cada imagen y confirmen cada «Sí». Si algo no se ve bien
-> (texto cortado, falta la leyenda), corrijan el DSL, vuelvan a exportar y cambien la fila.
-
 ## 1\. Resultado por vista
 
 |Vista|General: ¿título, tipo, alcance y leyenda?|Elementos: ¿nombre, tipo, descripción y tecnología?|Relaciones: ¿etiqueta con intención, dirección correcta y protocolo?|
@@ -18,15 +15,14 @@ Lista aplicada: Tabla 3 de la guía (General, Elementos, Relaciones). Las cinco 
 
 ## 2\. Hallazgos del Prompt IA 2 y verificación del equipo
 
-> Reemplacen estas filas por la salida real de la IA. Dejo los tipos de hallazgo que suelen
-> aparecer para que sepan cómo verificarlos; no los copien si la IA no los reportó.
-
 |Vista|Hallazgo de la IA|Verificación del equipo|
 |-|-|-|
-|<<COMPLETAR>>|<<COMPLETAR>>|<<COMPLETAR: Correcto / Falso positivo y por qué>>|
-|Contexto|(Si lo reporta) «Faltan las tecnologías de las relaciones con las personas»|**Falso positivo:** en el nivel 1 no se exigen tecnologías para las personas, y la guía pide que el contexto no muestre tecnologías internas|
-|Contenedores|(Si lo reporta) «La flecha de `sc.api` hacia Redis mezcla caché y cola»|**Correcto:** se aceptan ambas porque comparten protocolo y quedan explicadas en la descripción|
-|Despliegue|(Si lo reporta) «El monitoreo corre en el mismo VPS»|**Correcto, trade-off aceptado:** lo exige R-03 y está documentado en el nodo y en el informe del Lab 04|
+|Contenedores|«El proveedor de pagos y WhatsApp están definidos como `System`, no como `System_Ext`»|**Correcto:** en el PNG se ven en azul, igual que un sistema propio, y la leyenda no incluye «external system». Quedan fuera del límite del sistema, pero no se distinguen por color. Se anota como limitación del exportador.|
+|Contenedores|«La etiqueta de la flecha Comerciante → PWA se superpone con el título del límite del sistema»|**Correcto:** se ve en el PNG; es un problema de disposición automática que no afecta al contenido del modelo.|
+|Contenedores|«La PWA no tiene forma de navegador»|**Correcto:** C4-PlantUML no tiene forma de navegador; la PWA se identifica por su tecnología («Service Worker, IndexedDB»). Se corrige la frase del informe.|
+|Contenedores|«El Planificador dice que cancela pedidos sin pago, pero solo tiene flecha hacia Redis»|**Correcto, observación:** el Planificador solo programa tareas por Redis; qué proceso las ejecuta queda por documentar.|
+|Contenedores|«La flecha de la API hacia Redis mezcla caché y cola»|**Correcto:** se aceptan ambas porque comparten protocolo; queda explicado en la descripción.|
+|Contenedores|«La relación WhatsApp → Comerciante no indica tecnología»|**Falso positivo:** es el aviso que le llega a una persona; la lista exige protocolo entre contenedores y sistemas, no hacia personas.|
 
 Mínimo exigido: **al menos 1 falso positivo** identificado con su justificación.
 

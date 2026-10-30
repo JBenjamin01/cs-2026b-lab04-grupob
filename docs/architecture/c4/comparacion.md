@@ -14,10 +14,8 @@ a operaciones, y a quien necesita entender quién habla con quién sin leer el c
 
 |Aspecto|Escrito a mano (`contexto-manual.puml`)|Exportado de `workspace.dsl`|
 |-|-|-|
-|Tiempo invertido|<<COMPLETAR: minutos reales>>|<<COMPLETAR: minutos de exportar y generar las 5 vistas>>|
-|Errores encontrados|<<COMPLETAR: p. ej. nombres o descripciones que no coincidían con el DSL>>|<<COMPLETAR: p. ej. errores de `validate`>>|
-|Vistas que cubre|Solo contexto|Las 5 vistas desde un solo modelo|
-|Si mañana cambia el nombre de un contenedor|Hay que corregirlo en cada archivo `.puml` o `.mmd` donde aparezca; es fácil olvidar alguno|Se cambia una vez en `workspace.dsl` y se vuelve a exportar; todas las vistas quedan coherentes|
+|Tiempo invertido|Compilar el diagrama manual tomó 2,4 s (1 vista). Escribirlo desde cero se estima en unos 15 a 20 min|5,0 s para exportar y generar las 5 vistas (medido con Measure-Command)|
+|Errores encontrados|Ninguno al compilar; el riesgo es que el nombre de un elemento quede distinto al del DSL|Ninguno: validate devolvió código 0 y se generaron 5 .puml, 5 .mmd y 5 PNG||Si mañana cambia el nombre de un contenedor|Hay que corregirlo en cada archivo `.puml` o `.mmd` donde aparezca; es fácil olvidar alguno|Se cambia una vez en `workspace.dsl` y se vuelve a exportar; todas las vistas quedan coherentes|
 
 Conclusión: para un solo diagrama pequeño, escribir a mano es rápido; para varias vistas que
 deben mantenerse coherentes con un monolito que evoluciona, conviene modelar una sola vez.
