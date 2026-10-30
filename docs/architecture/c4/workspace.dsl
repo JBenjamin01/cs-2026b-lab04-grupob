@@ -86,6 +86,19 @@ workspace "San Camilo en Línea" "Modelo C4 de la plataforma de pedidos del Merc
             include *
             autolayout lr
         }
+        dynamic sc.api "ConfirmarYPagar" "Dinámico: confirmar y pagar un pedido multipuesto con Yape (HU-03, CA-1)." {
+            sc.pwa -> sc.api.pedidos "POST /api/v1/pedidos/{id}/pago (Idempotency-Key)"
+            sc.api.pedidos -> sc.api.catalogo "Reserva el stock de cada línea"
+            sc.api.pedidos -> sc.api.pagos "Solicita el cobro"
+            sc.api.pagos -> pasarela "Cobra con Yape"
+            sc.api.pedidos -> sc.db "Guarda el pedido PAGADO"
+            sc.api.pedidos -> sc.api.notificaciones "Pide avisar al comerciante"
+            sc.api.notificaciones -> sc.db "Guarda el aviso pendiente (misma transacción)"
+            sc.api.notificaciones -> sc.cola "Encola el envío (asíncrono)"
+            sc.worker -> sc.cola "Toma la tarea de envío"
+            sc.worker -> whatsapp "Envía la confirmación con reintentos"
+            autolayout lr
+        }
 
         styles {
             element "Person" {
