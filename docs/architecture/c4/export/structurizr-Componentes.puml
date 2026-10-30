@@ -1,0 +1,54 @@
+@startuml
+title <size:24>Component View: San Camilo en Línea - API San Camilo</size>\n<size:24>Nivel 3: módulos de la API (coinciden con docs/design/paquetes.puml).</size>
+
+set separator none
+left to right direction
+
+<style>
+  root {
+    BackgroundColor: #ffffff
+    FontColor: #444444
+  }
+</style>
+
+!include <C4/C4>
+!include <C4/C4_Context>
+!include <C4/C4_Container>
+!include <C4/C4_Component>
+
+System(Proveedordepagos, "Proveedor de pagos", $descr="Procesa el cobro con Yape; Yape no ofrece una API pública abierta (R-05).", $tags="", $link="")
+
+System_Boundary("SanCamiloenLínea_boundary", "San Camilo en Línea", $tags="") {
+  Container_Boundary("SanCamiloenLínea.APISanCamilo_boundary", "API San Camilo", $tags="") {
+    Component(SanCamiloenLínea.APISanCamilo.MóduloNotificaciones, "Módulo Notificaciones", $techn="Django app", $descr="Registra los avisos pendientes a los comerciantes (patrón outbox) mediante el puerto de mensajería.", $tags="", $link="")
+    Component(SanCamiloenLínea.APISanCamilo.MóduloReparto, "Módulo Reparto", $techn="Django app", $descr="Asigna pedidos a repartidores, arma la lista de puestos y registra las entregas.", $tags="", $link="")
+    Component(SanCamiloenLínea.APISanCamilo.MóduloCatálogo, "Módulo Catálogo", $techn="Django app", $descr="Publica productos, gestiona la disponibilidad y reserva o libera stock.", $tags="", $link="")
+    Component(SanCamiloenLínea.APISanCamilo.MóduloPedidos, "Módulo Pedidos", $techn="Django app", $descr="Arma el pedido multipuesto, lo confirma y controla los estados del pedido y de cada subpedido.", $tags="", $link="")
+    Component(SanCamiloenLínea.APISanCamilo.MóduloPagos, "Módulo Pagos", $techn="Django app", $descr="Cobra con Yape mediante el puerto PasarelaPago y guarda el estado del pago.", $tags="", $link="")
+  }
+
+  ContainerQueue(SanCamiloenLínea.Colaycaché, "Cola y caché", $techn="Redis", $descr="Broker de tareas de Celery y caché del catálogo.", $tags="", $link="")
+  ContainerDb(SanCamiloenLínea.Basededatos, "Base de datos", $techn="PostgreSQL", $descr="Una base con un esquema por módulo; guarda pedidos, pagos y avisos pendientes en una sola transacción.", $tags="", $link="")
+  Container(SanCamiloenLínea.PWAofflinefirst, "PWA offline-first", $techn="Plantillas Django + JavaScript, Service Worker, IndexedDB", $descr="Interfaz de cliente, comerciante y repartidor. Publica un producto en 3 toques y guarda las acciones sin conexión para sincronizarlas después.", $tags="", $link="")
+}
+
+Rel(SanCamiloenLínea.PWAofflinefirst, SanCamiloenLínea.APISanCamilo.MóduloCatálogo, "Consulta el catálogo y publica productos", $techn="HTTPS/JSON", $tags="", $link="")
+Rel(SanCamiloenLínea.PWAofflinefirst, SanCamiloenLínea.APISanCamilo.MóduloPedidos, "Arma, confirma y consulta pedidos", $techn="HTTPS/JSON", $tags="", $link="")
+Rel(SanCamiloenLínea.PWAofflinefirst, SanCamiloenLínea.APISanCamilo.MóduloReparto, "Consulta la ruta y marca entregas", $techn="HTTPS/JSON", $tags="", $link="")
+Rel(SanCamiloenLínea.APISanCamilo.MóduloReparto, SanCamiloenLínea.APISanCamilo.MóduloPedidos, "Consulta pedidos y marca subpedidos como recogidos", $techn="", $tags="", $link="")
+Rel(SanCamiloenLínea.APISanCamilo.MóduloPedidos, SanCamiloenLínea.APISanCamilo.MóduloCatálogo, "Reserva y libera stock", $techn="", $tags="", $link="")
+Rel(SanCamiloenLínea.APISanCamilo.MóduloPedidos, SanCamiloenLínea.APISanCamilo.MóduloPagos, "Solicita el cobro mediante el puerto PasarelaPago", $techn="", $tags="", $link="")
+Rel(SanCamiloenLínea.APISanCamilo.MóduloPedidos, SanCamiloenLínea.APISanCamilo.MóduloNotificaciones, "Pide avisar al comerciante mediante el puerto NotificadorMensajeria", $techn="", $tags="", $link="")
+Rel(SanCamiloenLínea.APISanCamilo.MóduloPagos, Proveedordepagos, "Cobra con Yape (adaptador)", $techn="HTTPS/JSON", $tags="", $link="")
+Rel(Proveedordepagos, SanCamiloenLínea.APISanCamilo.MóduloPedidos, "Notifica el resultado del cobro (webhook idempotente)", $techn="HTTPS/JSON", $tags="", $link="")
+Rel(SanCamiloenLínea.APISanCamilo.MóduloCatálogo, SanCamiloenLínea.Basededatos, "Lee y escribe el esquema catalogo", $techn="SQL", $tags="", $link="")
+Rel(SanCamiloenLínea.APISanCamilo.MóduloPedidos, SanCamiloenLínea.Basededatos, "Lee y escribe el esquema pedidos", $techn="SQL", $tags="", $link="")
+Rel(SanCamiloenLínea.APISanCamilo.MóduloPagos, SanCamiloenLínea.Basededatos, "Lee y escribe el esquema pagos", $techn="SQL", $tags="", $link="")
+Rel(SanCamiloenLínea.APISanCamilo.MóduloNotificaciones, SanCamiloenLínea.Basededatos, "Guarda el aviso pendiente (outbox) en el esquema notificaciones", $techn="SQL", $tags="", $link="")
+Rel(SanCamiloenLínea.APISanCamilo.MóduloReparto, SanCamiloenLínea.Basededatos, "Lee y escribe el esquema reparto", $techn="SQL", $tags="", $link="")
+Rel(SanCamiloenLínea.APISanCamilo.MóduloCatálogo, SanCamiloenLínea.Colaycaché, "Cachea el catálogo", $techn="Redis protocol", $tags="", $link="")
+Rel(SanCamiloenLínea.APISanCamilo.MóduloNotificaciones, SanCamiloenLínea.Colaycaché, "Encola el envío", $techn="Redis protocol", $tags="", $link="")
+
+SHOW_LEGEND(true)
+hide stereotypes
+@enduml

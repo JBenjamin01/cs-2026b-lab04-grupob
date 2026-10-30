@@ -1,0 +1,56 @@
+@startuml
+title <size:24>Dynamic View: San Camilo en Línea - API San Camilo</size>\n<size:24>Dinámico: confirmar y pagar un pedido multipuesto con Yape (HU-03, CA-1).</size>
+
+set separator none
+left to right direction
+
+<style>
+  root {
+    BackgroundColor: #ffffff
+    FontColor: #444444
+  }
+</style>
+
+!include <C4/C4>
+!include <C4/C4_Context>
+!include <C4/C4_Container>
+!include <C4/C4_Component>
+
+System(Proveedordepagos, "Proveedor de pagos", $descr="Procesa el cobro con Yape; Yape no ofrece una API pública abierta (R-05).", $tags="", $link="")
+System(WhatsAppBusinessPlatform, "WhatsApp Business Platform", $descr="Entrega al comerciante la confirmación de su parte del pedido (plantillas aprobadas).", $tags="", $link="")
+
+System_Boundary("SanCamiloenLínea_boundary", "San Camilo en Línea", $tags="") {
+  Container_Boundary("SanCamiloenLínea.APISanCamilo_boundary", "API San Camilo", $tags="") {
+    Component(SanCamiloenLínea.APISanCamilo.MóduloNotificaciones, "Módulo Notificaciones", $techn="Django app", $descr="Registra los avisos pendientes a los comerciantes (patrón outbox) mediante el puerto de mensajería.", $tags="", $link="")
+    Component(SanCamiloenLínea.APISanCamilo.MóduloCatálogo, "Módulo Catálogo", $techn="Django app", $descr="Publica productos, gestiona la disponibilidad y reserva o libera stock.", $tags="", $link="")
+    Component(SanCamiloenLínea.APISanCamilo.MóduloPedidos, "Módulo Pedidos", $techn="Django app", $descr="Arma el pedido multipuesto, lo confirma y controla los estados del pedido y de cada subpedido.", $tags="", $link="")
+    Component(SanCamiloenLínea.APISanCamilo.MóduloPagos, "Módulo Pagos", $techn="Django app", $descr="Cobra con Yape mediante el puerto PasarelaPago y guarda el estado del pago.", $tags="", $link="")
+  }
+
+  Container(SanCamiloenLínea.Workerdenotificaciones, "Worker de notificaciones", $techn="Celery", $descr="Envía los avisos pendientes a WhatsApp con reintentos y espera creciente.", $tags="", $link="")
+  ContainerQueue(SanCamiloenLínea.Colaycaché, "Cola y caché", $techn="Redis", $descr="Broker de tareas de Celery y caché del catálogo.", $tags="", $link="")
+  ContainerDb(SanCamiloenLínea.Basededatos, "Base de datos", $techn="PostgreSQL", $descr="Una base con un esquema por módulo; guarda pedidos, pagos y avisos pendientes en una sola transacción.", $tags="", $link="")
+  Container(SanCamiloenLínea.PWAofflinefirst, "PWA offline-first", $techn="Plantillas Django + JavaScript, Service Worker, IndexedDB", $descr="Interfaz de cliente, comerciante y repartidor. Publica un producto en 3 toques y guarda las acciones sin conexión para sincronizarlas después.", $tags="", $link="")
+}
+
+Container(SanCamiloenLínea.PWAofflinefirst, "PWA offline-first", $techn="Plantillas Django + JavaScript, Service Worker, IndexedDB", $descr="Interfaz de cliente, comerciante y repartidor. Publica un producto en 3 toques y guarda las acciones sin conexión para sincronizarlas después.", $tags="", $link="")
+Container(SanCamiloenLínea.Workerdenotificaciones, "Worker de notificaciones", $techn="Celery", $descr="Envía los avisos pendientes a WhatsApp con reintentos y espera creciente.", $tags="", $link="")
+ContainerQueue(SanCamiloenLínea.Colaycaché, "Cola y caché", $techn="Redis", $descr="Broker de tareas de Celery y caché del catálogo.", $tags="", $link="")
+ContainerDb(SanCamiloenLínea.Basededatos, "Base de datos", $techn="PostgreSQL", $descr="Una base con un esquema por módulo; guarda pedidos, pagos y avisos pendientes en una sola transacción.", $tags="", $link="")
+System(Proveedordepagos, "Proveedor de pagos", $descr="Procesa el cobro con Yape; Yape no ofrece una API pública abierta (R-05).", $tags="", $link="")
+System(WhatsAppBusinessPlatform, "WhatsApp Business Platform", $descr="Entrega al comerciante la confirmación de su parte del pedido (plantillas aprobadas).", $tags="", $link="")
+
+Rel(SanCamiloenLínea.PWAofflinefirst, SanCamiloenLínea.APISanCamilo.MóduloPedidos, "1: POST /api/v1/pedidos/{id}/pago (Idempotency-Key)", $techn="HTTPS/JSON", $tags="", $link="")
+Rel(SanCamiloenLínea.APISanCamilo.MóduloPedidos, SanCamiloenLínea.APISanCamilo.MóduloCatálogo, "2: Reserva el stock de cada línea", $techn="", $tags="", $link="")
+Rel(SanCamiloenLínea.APISanCamilo.MóduloPedidos, SanCamiloenLínea.APISanCamilo.MóduloPagos, "3: Solicita el cobro", $techn="", $tags="", $link="")
+Rel(SanCamiloenLínea.APISanCamilo.MóduloPagos, Proveedordepagos, "4: Cobra con Yape", $techn="HTTPS/JSON", $tags="", $link="")
+Rel(SanCamiloenLínea.APISanCamilo.MóduloPedidos, SanCamiloenLínea.Basededatos, "5: Guarda el pedido PAGADO", $techn="SQL", $tags="", $link="")
+Rel(SanCamiloenLínea.APISanCamilo.MóduloPedidos, SanCamiloenLínea.APISanCamilo.MóduloNotificaciones, "6: Pide avisar al comerciante", $techn="", $tags="", $link="")
+Rel(SanCamiloenLínea.APISanCamilo.MóduloNotificaciones, SanCamiloenLínea.Basededatos, "7: Guarda el aviso pendiente (misma transacción)", $techn="SQL", $tags="", $link="")
+Rel(SanCamiloenLínea.APISanCamilo.MóduloNotificaciones, SanCamiloenLínea.Colaycaché, "8: Encola el envío (asíncrono)", $techn="Redis protocol", $tags="", $link="")
+Rel(SanCamiloenLínea.Workerdenotificaciones, SanCamiloenLínea.Colaycaché, "9: Toma la tarea de envío", $techn="Redis protocol", $tags="", $link="")
+Rel(SanCamiloenLínea.Workerdenotificaciones, WhatsAppBusinessPlatform, "10: Envía la confirmación con reintentos", $techn="HTTPS/JSON", $tags="", $link="")
+
+SHOW_LEGEND(true)
+hide stereotypes
+@enduml

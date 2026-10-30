@@ -1,0 +1,28 @@
+graph LR
+  linkStyle default fill:#ffffff
+
+  subgraph diagram ["System Context View: San Camilo en Línea"]
+    style diagram fill:#ffffff,stroke:#ffffff
+
+    1["<div style='font-weight: bold'>Cliente</div><div style='font-size: 70%; margin-top: 0px'>[Person]</div><div style='font-size: 80%; margin-top:10px'>Compra productos de varios<br />puestos del Mercado San<br />Camilo en un solo pedido, con<br />recojo o delivery.</div>"]
+    style 1 fill:#08427b,stroke:#052e56,color:#ffffff
+    16["<div style='font-weight: bold'>Proveedor de pagos</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Procesa el cobro con Yape;<br />Yape no ofrece una API<br />pública abierta (R-05).</div>"]
+    style 16 fill:#999999,stroke:#6b6b6b,color:#ffffff
+    17["<div style='font-weight: bold'>WhatsApp Business Platform</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Entrega al comerciante la<br />confirmación de su parte del<br />pedido (plantillas<br />aprobadas).</div>"]
+    style 17 fill:#999999,stroke:#6b6b6b,color:#ffffff
+    2["<div style='font-weight: bold'>Comerciante</div><div style='font-size: 70%; margin-top: 0px'>[Person]</div><div style='font-size: 80%; margin-top:10px'>Dueño o encargado de un<br />puesto; publica sus productos<br />y atiende su parte de cada<br />pedido.</div>"]
+    style 2 fill:#08427b,stroke:#052e56,color:#ffffff
+    3["<div style='font-weight: bold'>Repartidor</div><div style='font-size: 70%; margin-top: 0px'>[Person]</div><div style='font-size: 80%; margin-top:10px'>Recoge los productos en los<br />puestos y los entrega al<br />cliente.</div>"]
+    style 3 fill:#08427b,stroke:#052e56,color:#ffffff
+    4["<div style='font-weight: bold'>San Camilo en Línea</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Permite pedir a varios<br />puestos del mercado en un<br />solo pedido y pagarlo una<br />sola vez con Yape.</div>"]
+    style 4 fill:#1168bd,stroke:#0b4884,color:#ffffff
+
+    1-. "<div>Arma pedidos con productos de<br />varios puestos y los paga con<br />Yape</div><div style='font-size: 70%'></div>" .->4
+    2-. "<div>Publica sus productos y marca<br />cuáles se agotaron</div><div style='font-size: 70%'></div>" .->4
+    3-. "<div>Consulta los puestos a<br />recorrer y marca las entregas</div><div style='font-size: 70%'></div>" .->4
+    4-. "<div>Solicita el cobro del pedido</div><div style='font-size: 70%'>[HTTPS/JSON]</div>" .->16
+    16-. "<div>Notifica el resultado del<br />cobro</div><div style='font-size: 70%'>[HTTPS/JSON]</div>" .->4
+    4-. "<div>Envía la confirmación de cada<br />subpedido</div><div style='font-size: 70%'>[HTTPS/JSON]</div>" .->17
+    17-. "<div>Entrega el aviso del pedido<br />en su WhatsApp</div><div style='font-size: 70%'></div>" .->2
+
+  end
