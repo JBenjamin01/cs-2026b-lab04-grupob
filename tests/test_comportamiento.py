@@ -12,7 +12,7 @@ import pytest
 from catalogo.modelos import Comerciante, Producto
 from pedidos.externos import ClienteClaudeSimulado, ModeloLocalSimulado, PlinClient, YapeSDK
 
-VERSIONES = ["pedidos.antes.servicio"]  # en E2 se agrega "arranque" (versión con patrones)
+VERSIONES = ["pedidos.antes.servicio", "arranque"]
 CATALOGO = ["Papa amarilla", "Queso paria", "Rocoto", "Choclo"]
 
 
@@ -186,8 +186,14 @@ def test_no_se_rechaza_un_subpedido_no_pagado(m, puestos):
         m.crear_servicio_pedidos().servicio.rechazar_puesto(pedido_dos_puestos(m, puestos), juan, "x")
 
 
+def requiere_ia(m):
+    if not hasattr(m, "crear_normalizador"):
+        pytest.skip("La IA de la versión con patrones se refactoriza en E5")
+
+
 # ---------------------------------------------------------------- IA: normalizar nombres de productos
 def test_ia_normaliza_un_nombre_mal_escrito(m):
+    requiere_ia(m)
     claude = ClienteClaudeSimulado("Papa amarilla")
     n = m.crear_normalizador(CATALOGO, claude=claude)
     assert n.sugerir_nombre("papa amarila", "CLAUDE") == "Papa amarilla"
@@ -195,6 +201,7 @@ def test_ia_normaliza_un_nombre_mal_escrito(m):
 
 
 def test_ia_no_se_llama_si_el_nombre_ya_es_exacto(m):
+    requiere_ia(m)
     claude = ClienteClaudeSimulado("Rocoto")
     assert m.crear_normalizador(CATALOGO, claude=claude).sugerir_nombre("rocoto", "CLAUDE") == "Rocoto"
     assert claude.llamadas == 0
@@ -206,15 +213,18 @@ def test_ia_no_se_llama_si_el_nombre_ya_es_exacto(m):
     "Papa amarilla seleccionada de primera calidad, recién cosechada",  # demasiado larga
 ])
 def test_ia_respuesta_invalida_no_se_acepta(m, respuesta):
+    requiere_ia(m)
     n = m.crear_normalizador(CATALOGO, local=ModeloLocalSimulado(respuesta))
     assert n.sugerir_nombre("papa amarila", "LOCAL") is None
 
 
 def test_ia_limpia_comillas_y_punto_final(m):
+    requiere_ia(m)
     n = m.crear_normalizador(CATALOGO, local=ModeloLocalSimulado('"queso paria."'))
     assert n.sugerir_nombre("keso paria", "LOCAL") == "Queso paria"
 
 
 def test_ia_proveedor_no_soportado(m):
+    requiere_ia(m)
     with pytest.raises(ValueError):
         m.crear_normalizador(CATALOGO).sugerir_nombre("choclo tierno", "GPT")
