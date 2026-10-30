@@ -1,0 +1,52 @@
+@startuml
+title <size:24>Deployment View: San Camilo en Línea - Producción</size>\n<size:24>Despliegue en producción del MVP: un solo VPS.</size>
+
+set separator none
+left to right direction
+
+<style>
+  root {
+    BackgroundColor: #ffffff
+    FontColor: #444444
+  }
+</style>
+
+!include <C4/C4>
+!include <C4/C4_Context>
+!include <C4/C4_Container>
+!include <C4/C4_Deployment>
+
+Deployment_Node(Producción.CelularAndroiddegamabaja, "Celular Android de gama baja", $type="Android / Chrome", $descr="Aprox. 2 GB de RAM y red 3G intermitente (R-06)", $tags="", $link="") {
+  Container(Producción.CelularAndroiddegamabaja.PWAofflinefirst_1, "PWA offline-first", $techn="Plantillas Django + JavaScript, Service Worker, IndexedDB", $descr="Interfaz de cliente, comerciante y repartidor. Publica un producto en 3 toques y guarda las acciones sin conexión para sincronizarlas después.", $tags="", $link="")
+}
+
+Deployment_Node(Producción.VPSúnico, "VPS único", $type="Ubuntu Server 24.04 LTS, 2 vCPU, 4 GB RAM", $descr="Un solo servidor de bajo costo (R-03)", $tags="", $link="") {
+  Deployment_Node(Producción.VPSúnico.Nginx, "Nginx", $type="Nginx", $descr="Termina HTTPS y sirve los archivos estáticos.", $tags="", $link="")
+  Deployment_Node(Producción.VPSúnico.Serviciosdelmonolito, "Servicios del monolito", $type="systemd", $descr="Un servicio por proceso, con reinicio automático.", $tags="", $link="") {
+    Container(Producción.VPSúnico.Serviciosdelmonolito.APISanCamilo_1, "API San Camilo", $techn="Python / Django + Gunicorn", $descr="Monolito modular con 5 módulos de dominio; expone los casos de uso y los webhooks.", $tags="", $link="")
+    Container(Producción.VPSúnico.Serviciosdelmonolito.Workerdenotificaciones_1, "Worker de notificaciones", $techn="Celery", $descr="Envía los avisos pendientes a WhatsApp con reintentos y espera creciente.", $tags="", $link="")
+    Container(Producción.VPSúnico.Serviciosdelmonolito.Planificador_1, "Planificador", $techn="Celery beat", $descr="Reencola cada 5 min los avisos pendientes y cancela los pedidos sin pago a los 15 min.", $tags="", $link="")
+    ContainerQueue(Producción.VPSúnico.Serviciosdelmonolito.Colaycaché_1, "Cola y caché", $techn="Redis", $descr="Broker de tareas de Celery y caché del catálogo.", $tags="", $link="")
+    ContainerDb(Producción.VPSúnico.Serviciosdelmonolito.Basededatos_1, "Base de datos", $techn="PostgreSQL", $descr="Una base con un esquema por módulo; guarda pedidos, pagos y avisos pendientes en una sola transacción.", $tags="", $link="")
+  }
+
+  Deployment_Node(Producción.VPSúnico.Monitoreobásico, "Monitoreo básico", $type="Grafana", $descr="Alerta si la aplicación deja de responder (corre en el mismo VPS: trade-off aceptado en el MVP).", $tags="", $link="")
+}
+
+Deployment_Node(Producción.Almacenamientoexterno, "Almacenamiento externo", $type="Cron + pg_dump diario", $descr="Copia fuera del VPS (ADR-002)", $tags="", $link="") {
+  Deployment_Node(Producción.Almacenamientoexterno.CopiadiariadePostgreSQL, "Copia diaria de PostgreSQL", $type="pg_dump", $descr="Permite restaurar ante la pérdida total del disco.", $tags="", $link="")
+}
+
+Rel(Producción.CelularAndroiddegamabaja.PWAofflinefirst_1, Producción.VPSúnico.Serviciosdelmonolito.APISanCamilo_1, "Envía solicitudes y sincroniza las acciones guardadas", $techn="HTTPS/JSON (con clave de idempotencia)", $tags="", $link="")
+Rel(Producción.VPSúnico.Serviciosdelmonolito.APISanCamilo_1, Producción.VPSúnico.Serviciosdelmonolito.Colaycaché_1, "Cachea el catálogo y encola los envíos", $techn="Redis protocol", $tags="", $link="")
+Rel(Producción.VPSúnico.Serviciosdelmonolito.Workerdenotificaciones_1, Producción.VPSúnico.Serviciosdelmonolito.Colaycaché_1, "Consume las tareas de envío", $techn="Redis protocol", $tags="", $link="")
+Rel(Producción.VPSúnico.Serviciosdelmonolito.Planificador_1, Producción.VPSúnico.Serviciosdelmonolito.Colaycaché_1, "Programa los reintentos cada 5 minutos", $techn="Redis protocol", $tags="", $link="")
+Rel(Producción.VPSúnico.Serviciosdelmonolito.APISanCamilo_1, Producción.VPSúnico.Serviciosdelmonolito.Basededatos_1, "Lee y escribe en el esquema de cada módulo", $techn="SQL/TCP", $tags="", $link="")
+Rel(Producción.VPSúnico.Serviciosdelmonolito.Workerdenotificaciones_1, Producción.VPSúnico.Serviciosdelmonolito.Basededatos_1, "Lee los avisos pendientes y los marca como enviados", $techn="SQL/TCP", $tags="", $link="")
+Rel(Producción.VPSúnico.Nginx, Producción.VPSúnico.Serviciosdelmonolito.APISanCamilo_1, "Reenvía las peticiones", $techn="HTTP", $tags="", $link="")
+Rel(Producción.VPSúnico.Monitoreobásico, Producción.VPSúnico.Nginx, "Verifica que responda", $techn="HTTPS", $tags="", $link="")
+Rel(Producción.VPSúnico.Serviciosdelmonolito.Basededatos_1, Producción.Almacenamientoexterno.CopiadiariadePostgreSQL, "Respaldo diario", $techn="pg_dump", $tags="", $link="")
+
+SHOW_LEGEND(true)
+hide stereotypes
+@enduml

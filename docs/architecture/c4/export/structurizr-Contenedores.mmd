@@ -1,0 +1,49 @@
+graph LR
+  linkStyle default fill:#ffffff
+
+  subgraph diagram ["Container View: San Camilo en Línea"]
+    style diagram fill:#ffffff,stroke:#ffffff
+
+    1["<div style='font-weight: bold'>Cliente</div><div style='font-size: 70%; margin-top: 0px'>[Person]</div><div style='font-size: 80%; margin-top:10px'>Compra productos de varios<br />puestos del Mercado San<br />Camilo en un solo pedido, con<br />recojo o delivery.</div>"]
+    style 1 fill:#08427b,stroke:#052e56,color:#ffffff
+    2["<div style='font-weight: bold'>Comerciante</div><div style='font-size: 70%; margin-top: 0px'>[Person]</div><div style='font-size: 80%; margin-top:10px'>Dueño o encargado de un<br />puesto; publica sus productos<br />y atiende su parte de cada<br />pedido.</div>"]
+    style 2 fill:#08427b,stroke:#052e56,color:#ffffff
+    3["<div style='font-weight: bold'>Repartidor</div><div style='font-size: 70%; margin-top: 0px'>[Person]</div><div style='font-size: 80%; margin-top:10px'>Recoge los productos en los<br />puestos y los entrega al<br />cliente.</div>"]
+    style 3 fill:#08427b,stroke:#052e56,color:#ffffff
+    16["<div style='font-weight: bold'>Proveedor de pagos</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Procesa el cobro con Yape;<br />Yape no ofrece una API<br />pública abierta (R-05).</div>"]
+    style 16 fill:#999999,stroke:#6b6b6b,color:#ffffff
+    17["<div style='font-weight: bold'>WhatsApp Business Platform</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Entrega al comerciante la<br />confirmación de su parte del<br />pedido (plantillas<br />aprobadas).</div>"]
+    style 17 fill:#999999,stroke:#6b6b6b,color:#ffffff
+
+    subgraph 4 ["San Camilo en Línea"]
+      style 4 fill:#ffffff,stroke:#0b4884,color:#0b4884
+
+      12["<div style='font-weight: bold'>Worker de notificaciones</div><div style='font-size: 70%; margin-top: 0px'>[Container: Celery]</div><div style='font-size: 80%; margin-top:10px'>Envía los avisos pendientes a<br />WhatsApp con reintentos y<br />espera creciente.</div>"]
+      style 12 fill:#438dd5,stroke:#2e6295,color:#ffffff
+      13["<div style='font-weight: bold'>Planificador</div><div style='font-size: 70%; margin-top: 0px'>[Container: Celery beat]</div><div style='font-size: 80%; margin-top:10px'>Reencola cada 5 min los<br />avisos pendientes y cancela<br />los pedidos sin pago a los 15<br />min.</div>"]
+      style 13 fill:#438dd5,stroke:#2e6295,color:#ffffff
+      14["<div style='font-weight: bold'>Cola y caché</div><div style='font-size: 70%; margin-top: 0px'>[Container: Redis]</div><div style='font-size: 80%; margin-top:10px'>Broker de tareas de Celery y<br />caché del catálogo.</div>"]
+      style 14 fill:#438dd5,stroke:#2e6295,color:#ffffff
+      15[("<div style='font-weight: bold'>Base de datos</div><div style='font-size: 70%; margin-top: 0px'>[Container: PostgreSQL]</div><div style='font-size: 80%; margin-top:10px'>Una base con un esquema por<br />módulo; guarda pedidos, pagos<br />y avisos pendientes en una<br />sola transacción.</div>")]
+      style 15 fill:#438dd5,stroke:#2e6295,color:#ffffff
+      5["<div style='font-weight: bold'>PWA offline-first</div><div style='font-size: 70%; margin-top: 0px'>[Container: Plantillas Django + JavaScript, Service Worker, IndexedDB]</div><div style='font-size: 80%; margin-top:10px'>Interfaz de cliente,<br />comerciante y repartidor.<br />Publica un producto en 3<br />toques y guarda las acciones<br />sin conexión para<br />sincronizarlas después.</div>"]
+      style 5 fill:#438dd5,stroke:#2e6295,color:#ffffff
+      6["<div style='font-weight: bold'>API San Camilo</div><div style='font-size: 70%; margin-top: 0px'>[Container: Python / Django + Gunicorn]</div><div style='font-size: 80%; margin-top:10px'>Monolito modular con 5<br />módulos de dominio; expone<br />los casos de uso y los<br />webhooks.</div>"]
+      style 6 fill:#438dd5,stroke:#2e6295,color:#ffffff
+    end
+
+    17-. "<div>Entrega el aviso del pedido<br />en su WhatsApp</div><div style='font-size: 70%'></div>" .->2
+    1-. "<div>Explora el catálogo, arma su<br />pedido y paga</div><div style='font-size: 70%'>[HTTPS]</div>" .->5
+    2-. "<div>Publica productos y marca<br />agotados, incluso sin<br />conexión</div><div style='font-size: 70%'>[HTTPS]</div>" .->5
+    3-. "<div>Consulta su ruta y marca<br />entregas</div><div style='font-size: 70%'>[HTTPS]</div>" .->5
+    5-. "<div>Envía solicitudes y<br />sincroniza las acciones<br />guardadas</div><div style='font-size: 70%'>[HTTPS/JSON (con clave de idempotencia)]</div>" .->6
+    6-. "<div>Lee y escribe en el esquema<br />de cada módulo</div><div style='font-size: 70%'>[SQL/TCP]</div>" .->15
+    6-. "<div>Cachea el catálogo y encola<br />los envíos</div><div style='font-size: 70%'>[Redis protocol]</div>" .->14
+    12-. "<div>Consume las tareas de envío</div><div style='font-size: 70%'>[Redis protocol]</div>" .->14
+    12-. "<div>Lee los avisos pendientes y<br />los marca como enviados</div><div style='font-size: 70%'>[SQL/TCP]</div>" .->15
+    13-. "<div>Programa los reintentos cada<br />5 minutos</div><div style='font-size: 70%'>[Redis protocol]</div>" .->14
+    12-. "<div>Envía la confirmación al<br />comerciante</div><div style='font-size: 70%'>[HTTPS/JSON]</div>" .->17
+    6-. "<div>Solicita el cobro</div><div style='font-size: 70%'>[HTTPS/JSON]</div>" .->16
+    16-. "<div>Notifica el resultado del<br />cobro (webhook idempotente)</div><div style='font-size: 70%'>[HTTPS/JSON]</div>" .->6
+
+  end

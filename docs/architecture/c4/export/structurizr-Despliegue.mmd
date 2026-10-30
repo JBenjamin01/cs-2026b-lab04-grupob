@@ -1,0 +1,55 @@
+graph LR
+  linkStyle default fill:#ffffff
+
+  subgraph diagram ["Deployment View: San Camilo en Línea - Producción"]
+    style diagram fill:#ffffff,stroke:#ffffff
+
+    subgraph 53 ["Celular Android de gama baja"]
+      style 53 fill:#ffffff,stroke:#444444,color:#444444
+
+      54["<div style='font-weight: bold'>PWA offline-first</div><div style='font-size: 70%; margin-top: 0px'>[Container: Plantillas Django + JavaScript, Service Worker, IndexedDB]</div><div style='font-size: 80%; margin-top:10px'>Interfaz de cliente,<br />comerciante y repartidor.<br />Publica un producto en 3<br />toques y guarda las acciones<br />sin conexión para<br />sincronizarlas después.</div>"]
+      style 54 fill:#438dd5,stroke:#2e6295,color:#ffffff
+    end
+
+    subgraph 55 ["VPS único"]
+      style 55 fill:#ffffff,stroke:#444444,color:#444444
+
+      56["<div style='font-weight: bold'>Nginx</div><div style='font-size: 70%; margin-top: 0px'>[Infrastructure Node: Nginx]</div><div style='font-size: 80%; margin-top:10px'>Termina HTTPS y sirve los<br />archivos estáticos.</div>"]
+      style 56 fill:#ffffff,stroke:#444444,color:#444444
+      subgraph 57 ["Servicios del monolito"]
+        style 57 fill:#ffffff,stroke:#444444,color:#444444
+
+        58["<div style='font-weight: bold'>API San Camilo</div><div style='font-size: 70%; margin-top: 0px'>[Container: Python / Django + Gunicorn]</div><div style='font-size: 80%; margin-top:10px'>Monolito modular con 5<br />módulos de dominio; expone<br />los casos de uso y los<br />webhooks.</div>"]
+        style 58 fill:#438dd5,stroke:#2e6295,color:#ffffff
+        60["<div style='font-weight: bold'>Worker de notificaciones</div><div style='font-size: 70%; margin-top: 0px'>[Container: Celery]</div><div style='font-size: 80%; margin-top:10px'>Envía los avisos pendientes a<br />WhatsApp con reintentos y<br />espera creciente.</div>"]
+        style 60 fill:#438dd5,stroke:#2e6295,color:#ffffff
+        61["<div style='font-weight: bold'>Planificador</div><div style='font-size: 70%; margin-top: 0px'>[Container: Celery beat]</div><div style='font-size: 80%; margin-top:10px'>Reencola cada 5 min los<br />avisos pendientes y cancela<br />los pedidos sin pago a los 15<br />min.</div>"]
+        style 61 fill:#438dd5,stroke:#2e6295,color:#ffffff
+        62["<div style='font-weight: bold'>Cola y caché</div><div style='font-size: 70%; margin-top: 0px'>[Container: Redis]</div><div style='font-size: 80%; margin-top:10px'>Broker de tareas de Celery y<br />caché del catálogo.</div>"]
+        style 62 fill:#438dd5,stroke:#2e6295,color:#ffffff
+        66[("<div style='font-weight: bold'>Base de datos</div><div style='font-size: 70%; margin-top: 0px'>[Container: PostgreSQL]</div><div style='font-size: 80%; margin-top:10px'>Una base con un esquema por<br />módulo; guarda pedidos, pagos<br />y avisos pendientes en una<br />sola transacción.</div>")]
+        style 66 fill:#438dd5,stroke:#2e6295,color:#ffffff
+      end
+
+      69["<div style='font-weight: bold'>Monitoreo básico</div><div style='font-size: 70%; margin-top: 0px'>[Infrastructure Node: Grafana]</div><div style='font-size: 80%; margin-top:10px'>Alerta si la aplicación deja<br />de responder (corre en el<br />mismo VPS: trade-off aceptado<br />en el MVP).</div>"]
+      style 69 fill:#ffffff,stroke:#444444,color:#444444
+    end
+
+    subgraph 70 ["Almacenamiento externo"]
+      style 70 fill:#ffffff,stroke:#444444,color:#444444
+
+      71["<div style='font-weight: bold'>Copia diaria de PostgreSQL</div><div style='font-size: 70%; margin-top: 0px'>[Infrastructure Node: pg_dump]</div><div style='font-size: 80%; margin-top:10px'>Permite restaurar ante la<br />pérdida total del disco.</div>"]
+      style 71 fill:#ffffff,stroke:#444444,color:#444444
+    end
+
+    54-. "<div>Envía solicitudes y<br />sincroniza las acciones<br />guardadas</div><div style='font-size: 70%'>[HTTPS/JSON (con clave de idempotencia)]</div>" .->58
+    58-. "<div>Cachea el catálogo y encola<br />los envíos</div><div style='font-size: 70%'>[Redis protocol]</div>" .->62
+    60-. "<div>Consume las tareas de envío</div><div style='font-size: 70%'>[Redis protocol]</div>" .->62
+    61-. "<div>Programa los reintentos cada<br />5 minutos</div><div style='font-size: 70%'>[Redis protocol]</div>" .->62
+    58-. "<div>Lee y escribe en el esquema<br />de cada módulo</div><div style='font-size: 70%'>[SQL/TCP]</div>" .->66
+    60-. "<div>Lee los avisos pendientes y<br />los marca como enviados</div><div style='font-size: 70%'>[SQL/TCP]</div>" .->66
+    56-. "<div>Reenvía las peticiones</div><div style='font-size: 70%'>[HTTP]</div>" .->58
+    69-. "<div>Verifica que responda</div><div style='font-size: 70%'>[HTTPS]</div>" .->56
+    66-. "<div>Respaldo diario</div><div style='font-size: 70%'>[pg_dump]</div>" .->71
+
+  end

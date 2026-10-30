@@ -1,0 +1,62 @@
+graph LR
+  linkStyle default fill:#ffffff
+
+  subgraph diagram ["Dynamic View: San Camilo en Línea - API San Camilo"]
+    style diagram fill:#ffffff,stroke:#ffffff
+
+    16["<div style='font-weight: bold'>Proveedor de pagos</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Procesa el cobro con Yape;<br />Yape no ofrece una API<br />pública abierta (R-05).</div>"]
+    style 16 fill:#999999,stroke:#6b6b6b,color:#ffffff
+    17["<div style='font-weight: bold'>WhatsApp Business Platform</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Entrega al comerciante la<br />confirmación de su parte del<br />pedido (plantillas<br />aprobadas).</div>"]
+    style 17 fill:#999999,stroke:#6b6b6b,color:#ffffff
+
+    subgraph 4 ["San Camilo en Línea"]
+      style 4 fill:#ffffff,stroke:#0b4884,color:#0b4884
+
+      subgraph 6 ["API San Camilo"]
+        style 6 fill:#ffffff,stroke:#2e6295,color:#2e6295
+
+        10["<div style='font-weight: bold'>Módulo Notificaciones</div><div style='font-size: 70%; margin-top: 0px'>[Component: Django app]</div><div style='font-size: 80%; margin-top:10px'>Registra los avisos<br />pendientes a los comerciantes<br />(patrón outbox) mediante el<br />puerto de mensajería.</div>"]
+        style 10 fill:#85bbf0,stroke:#5d82a8,color:#000000
+        7["<div style='font-weight: bold'>Módulo Catálogo</div><div style='font-size: 70%; margin-top: 0px'>[Component: Django app]</div><div style='font-size: 80%; margin-top:10px'>Publica productos, gestiona<br />la disponibilidad y reserva o<br />libera stock.</div>"]
+        style 7 fill:#85bbf0,stroke:#5d82a8,color:#000000
+        8["<div style='font-weight: bold'>Módulo Pedidos</div><div style='font-size: 70%; margin-top: 0px'>[Component: Django app]</div><div style='font-size: 80%; margin-top:10px'>Arma el pedido multipuesto,<br />lo confirma y controla los<br />estados del pedido y de cada<br />subpedido.</div>"]
+        style 8 fill:#85bbf0,stroke:#5d82a8,color:#000000
+        9["<div style='font-weight: bold'>Módulo Pagos</div><div style='font-size: 70%; margin-top: 0px'>[Component: Django app]</div><div style='font-size: 80%; margin-top:10px'>Cobra con Yape mediante el<br />puerto PasarelaPago y guarda<br />el estado del pago.</div>"]
+        style 9 fill:#85bbf0,stroke:#5d82a8,color:#000000
+      end
+
+      12["<div style='font-weight: bold'>Worker de notificaciones</div><div style='font-size: 70%; margin-top: 0px'>[Container: Celery]</div><div style='font-size: 80%; margin-top:10px'>Envía los avisos pendientes a<br />WhatsApp con reintentos y<br />espera creciente.</div>"]
+      style 12 fill:#438dd5,stroke:#2e6295,color:#ffffff
+      14["<div style='font-weight: bold'>Cola y caché</div><div style='font-size: 70%; margin-top: 0px'>[Container: Redis]</div><div style='font-size: 80%; margin-top:10px'>Broker de tareas de Celery y<br />caché del catálogo.</div>"]
+      style 14 fill:#438dd5,stroke:#2e6295,color:#ffffff
+      15[("<div style='font-weight: bold'>Base de datos</div><div style='font-size: 70%; margin-top: 0px'>[Container: PostgreSQL]</div><div style='font-size: 80%; margin-top:10px'>Una base con un esquema por<br />módulo; guarda pedidos, pagos<br />y avisos pendientes en una<br />sola transacción.</div>")]
+      style 15 fill:#438dd5,stroke:#2e6295,color:#ffffff
+      5["<div style='font-weight: bold'>PWA offline-first</div><div style='font-size: 70%; margin-top: 0px'>[Container: Plantillas Django + JavaScript, Service Worker, IndexedDB]</div><div style='font-size: 80%; margin-top:10px'>Interfaz de cliente,<br />comerciante y repartidor.<br />Publica un producto en 3<br />toques y guarda las acciones<br />sin conexión para<br />sincronizarlas después.</div>"]
+      style 5 fill:#438dd5,stroke:#2e6295,color:#ffffff
+    end
+
+    5["<div style='font-weight: bold'>PWA offline-first</div><div style='font-size: 70%; margin-top: 0px'>[Container: Plantillas Django + JavaScript, Service Worker, IndexedDB]</div><div style='font-size: 80%; margin-top:10px'>Interfaz de cliente,<br />comerciante y repartidor.<br />Publica un producto en 3<br />toques y guarda las acciones<br />sin conexión para<br />sincronizarlas después.</div>"]
+    style 5 fill:#438dd5,stroke:#2e6295,color:#ffffff
+    12["<div style='font-weight: bold'>Worker de notificaciones</div><div style='font-size: 70%; margin-top: 0px'>[Container: Celery]</div><div style='font-size: 80%; margin-top:10px'>Envía los avisos pendientes a<br />WhatsApp con reintentos y<br />espera creciente.</div>"]
+    style 12 fill:#438dd5,stroke:#2e6295,color:#ffffff
+    14["<div style='font-weight: bold'>Cola y caché</div><div style='font-size: 70%; margin-top: 0px'>[Container: Redis]</div><div style='font-size: 80%; margin-top:10px'>Broker de tareas de Celery y<br />caché del catálogo.</div>"]
+    style 14 fill:#438dd5,stroke:#2e6295,color:#ffffff
+    15[("<div style='font-weight: bold'>Base de datos</div><div style='font-size: 70%; margin-top: 0px'>[Container: PostgreSQL]</div><div style='font-size: 80%; margin-top:10px'>Una base con un esquema por<br />módulo; guarda pedidos, pagos<br />y avisos pendientes en una<br />sola transacción.</div>")]
+    style 15 fill:#438dd5,stroke:#2e6295,color:#ffffff
+    16["<div style='font-weight: bold'>Proveedor de pagos</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Procesa el cobro con Yape;<br />Yape no ofrece una API<br />pública abierta (R-05).</div>"]
+    style 16 fill:#999999,stroke:#6b6b6b,color:#ffffff
+    17["<div style='font-weight: bold'>WhatsApp Business Platform</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Entrega al comerciante la<br />confirmación de su parte del<br />pedido (plantillas<br />aprobadas).</div>"]
+    style 17 fill:#999999,stroke:#6b6b6b,color:#ffffff
+
+    5-. "<div>1. POST<br />/api/v1/pedidos/{id}/pago<br />(Idempotency-Key)</div><div style='font-size: 70%'>[HTTPS/JSON]</div>" .->8
+    8-. "<div>2. Reserva el stock de cada<br />línea</div><div style='font-size: 70%'></div>" .->7
+    8-. "<div>3. Solicita el cobro</div><div style='font-size: 70%'></div>" .->9
+    9-. "<div>4. Cobra con Yape</div><div style='font-size: 70%'>[HTTPS/JSON]</div>" .->16
+    8-. "<div>5. Guarda el pedido PAGADO</div><div style='font-size: 70%'>[SQL]</div>" .->15
+    8-. "<div>6. Pide avisar al comerciante</div><div style='font-size: 70%'></div>" .->10
+    10-. "<div>7. Guarda el aviso pendiente<br />(misma transacción)</div><div style='font-size: 70%'>[SQL]</div>" .->15
+    10-. "<div>8. Encola el envío<br />(asíncrono)</div><div style='font-size: 70%'>[Redis protocol]</div>" .->14
+    12-. "<div>9. Toma la tarea de envío</div><div style='font-size: 70%'>[Redis protocol]</div>" .->14
+    12-. "<div>10. Envía la confirmación con<br />reintentos</div><div style='font-size: 70%'>[HTTPS/JSON]</div>" .->17
+
+  end

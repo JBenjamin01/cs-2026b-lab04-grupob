@@ -1,0 +1,49 @@
+@startuml
+title <size:24>Container View: San Camilo en Línea</size>\n<size:24>Nivel 2: contenedores de San Camilo en Línea.</size>
+
+set separator none
+left to right direction
+
+<style>
+  root {
+    BackgroundColor: #ffffff
+    FontColor: #444444
+  }
+</style>
+
+!include <C4/C4>
+!include <C4/C4_Context>
+!include <C4/C4_Container>
+
+Person(Cliente, "Cliente", $descr="Compra productos de varios puestos del Mercado San Camilo en un solo pedido, con recojo o delivery.", $tags="", $link="")
+Person(Comerciante, "Comerciante", $descr="Dueño o encargado de un puesto; publica sus productos y atiende su parte de cada pedido.", $tags="", $link="")
+Person(Repartidor, "Repartidor", $descr="Recoge los productos en los puestos y los entrega al cliente.", $tags="", $link="")
+System(Proveedordepagos, "Proveedor de pagos", $descr="Procesa el cobro con Yape; Yape no ofrece una API pública abierta (R-05).", $tags="", $link="")
+System(WhatsAppBusinessPlatform, "WhatsApp Business Platform", $descr="Entrega al comerciante la confirmación de su parte del pedido (plantillas aprobadas).", $tags="", $link="")
+
+System_Boundary("SanCamiloenLínea_boundary", "San Camilo en Línea", $tags="") {
+  Container(SanCamiloenLínea.Workerdenotificaciones, "Worker de notificaciones", $techn="Celery", $descr="Envía los avisos pendientes a WhatsApp con reintentos y espera creciente.", $tags="", $link="")
+  Container(SanCamiloenLínea.Planificador, "Planificador", $techn="Celery beat", $descr="Reencola cada 5 min los avisos pendientes y cancela los pedidos sin pago a los 15 min.", $tags="", $link="")
+  ContainerQueue(SanCamiloenLínea.Colaycaché, "Cola y caché", $techn="Redis", $descr="Broker de tareas de Celery y caché del catálogo.", $tags="", $link="")
+  ContainerDb(SanCamiloenLínea.Basededatos, "Base de datos", $techn="PostgreSQL", $descr="Una base con un esquema por módulo; guarda pedidos, pagos y avisos pendientes en una sola transacción.", $tags="", $link="")
+  Container(SanCamiloenLínea.PWAofflinefirst, "PWA offline-first", $techn="Plantillas Django + JavaScript, Service Worker, IndexedDB", $descr="Interfaz de cliente, comerciante y repartidor. Publica un producto en 3 toques y guarda las acciones sin conexión para sincronizarlas después.", $tags="", $link="")
+  Container(SanCamiloenLínea.APISanCamilo, "API San Camilo", $techn="Python / Django + Gunicorn", $descr="Monolito modular con 5 módulos de dominio; expone los casos de uso y los webhooks.", $tags="", $link="")
+}
+
+Rel(WhatsAppBusinessPlatform, Comerciante, "Entrega el aviso del pedido en su WhatsApp", $techn="", $tags="", $link="")
+Rel(Cliente, SanCamiloenLínea.PWAofflinefirst, "Explora el catálogo, arma su pedido y paga", $techn="HTTPS", $tags="", $link="")
+Rel(Comerciante, SanCamiloenLínea.PWAofflinefirst, "Publica productos y marca agotados, incluso sin conexión", $techn="HTTPS", $tags="", $link="")
+Rel(Repartidor, SanCamiloenLínea.PWAofflinefirst, "Consulta su ruta y marca entregas", $techn="HTTPS", $tags="", $link="")
+Rel(SanCamiloenLínea.PWAofflinefirst, SanCamiloenLínea.APISanCamilo, "Envía solicitudes y sincroniza las acciones guardadas", $techn="HTTPS/JSON (con clave de idempotencia)", $tags="", $link="")
+Rel(SanCamiloenLínea.APISanCamilo, SanCamiloenLínea.Basededatos, "Lee y escribe en el esquema de cada módulo", $techn="SQL/TCP", $tags="", $link="")
+Rel(SanCamiloenLínea.APISanCamilo, SanCamiloenLínea.Colaycaché, "Cachea el catálogo y encola los envíos", $techn="Redis protocol", $tags="", $link="")
+Rel(SanCamiloenLínea.Workerdenotificaciones, SanCamiloenLínea.Colaycaché, "Consume las tareas de envío", $techn="Redis protocol", $tags="", $link="")
+Rel(SanCamiloenLínea.Workerdenotificaciones, SanCamiloenLínea.Basededatos, "Lee los avisos pendientes y los marca como enviados", $techn="SQL/TCP", $tags="", $link="")
+Rel(SanCamiloenLínea.Planificador, SanCamiloenLínea.Colaycaché, "Programa los reintentos cada 5 minutos", $techn="Redis protocol", $tags="", $link="")
+Rel(SanCamiloenLínea.Workerdenotificaciones, WhatsAppBusinessPlatform, "Envía la confirmación al comerciante", $techn="HTTPS/JSON", $tags="", $link="")
+Rel(SanCamiloenLínea.APISanCamilo, Proveedordepagos, "Solicita el cobro", $techn="HTTPS/JSON", $tags="", $link="")
+Rel(Proveedordepagos, SanCamiloenLínea.APISanCamilo, "Notifica el resultado del cobro (webhook idempotente)", $techn="HTTPS/JSON", $tags="", $link="")
+
+SHOW_LEGEND(true)
+hide stereotypes
+@enduml
