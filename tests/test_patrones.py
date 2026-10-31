@@ -4,7 +4,9 @@ from uuid import uuid4
 
 import pytest
 
-from arranque import crear_servicio_pedidos
+from arranque import crear_normalizador, crear_servicio_pedidos
+from catalogo.ia import (ClaudeAdapter, ConCache, LimpiarFormato, LongitudMaxima, SinPreciosNiCantidades,
+                         SoloDelCatalogo)
 from catalogo.modelos import Comerciante, Producto
 from comun.eventos import PublicadorEventos, Suscriptor
 from comun.excepciones import EstadoInvalidoError
@@ -12,7 +14,7 @@ from notificaciones.puertos import BandejaMensajes
 from notificaciones.suscriptores import NotificadorCliente, NotificadorComerciantes
 from pagos.modelos import EstadoPago, Pago, PasarelaPago
 from pagos.pasarelas import ConReintentos, FabricaPasarelas, PlinAdapter, YapeAdapter
-from pedidos.externos import PlinClient, YapeSDK
+from pedidos.externos import ClienteClaudeSimulado, PlinClient, YapeSDK
 from pedidos.pedido import Cliente, LineaPedido, Pedido, PedidoPuesto
 from pedidos.servicio import ServicioPedidos
 from pedidos.tarifas import TarifaEnvio, tarifas_por_defecto
@@ -224,3 +226,38 @@ def test_strategy_tarifa_nueva_sin_tocar_el_servicio(productos):
     p = nuevo_pedido(productos, "DELIVERY", "Socabaya")
     ServicioPedidos(fabrica, PublicadorEventos(), tarifas).confirmar_y_pagar(p, "YAPE")
     assert p.costo_envio == Decimal("7")
+
+
+# ================================ E5: IA AISLADA ================================
+def test_decorator_cache_evita_llamadas_repetidas():
+    claude = ClienteClaudeSimulado("Choclo")
+    proveedor = ConCache(ClaudeAdapter(claude))
+    assert proveedor.completar("p") == proveedor.completar("p") == "Choclo"
+    assert claude.llamadas == 1
+
+
+def test_normalizador_con_cache_no_repite_la_llamada():
+    claude = ClienteClaudeSimulado("Papa amarilla")
+    n = crear_normalizador(["Papa amarilla"], claude=claude)
+    n.sugerir_nombre("papa amarila")
+    n.sugerir_nombre("papa amarila")
+    assert claude.llamadas == 1
+
+
+def test_chain_cada_guardrail_bloquea_lo_suyo():
+    catalogo = ["Papa amarilla"]
+    with pytest.raises(ValueError, match="precio"):
+        SinPreciosNiCantidades().validar("Papa a S/ 2")
+    with pytest.raises(ValueError, match="caracteres"):
+        LongitudMaxima(10).validar("Papa amarilla de Chiguata")
+    with pytest.raises(ValueError, match="catálogo"):
+        SoloDelCatalogo(catalogo).validar("Papa huayro")
+    cadena = LimpiarFormato(SinPreciosNiCantidades(LongitudMaxima(40, SoloDelCatalogo(catalogo))))
+    assert cadena.validar('  "papa AMARILLA."  ') == "Papa amarilla"
+
+
+def test_chain_el_orden_importa():
+    """Sin limpiar primero, las comillas harían fallar a SoloDelCatalogo."""
+    with pytest.raises(ValueError):
+        SoloDelCatalogo(["Rocoto"]).validar('"Rocoto"')
+    assert LimpiarFormato(SoloDelCatalogo(["Rocoto"])).validar('"Rocoto"') == "Rocoto"

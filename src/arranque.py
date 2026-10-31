@@ -8,17 +8,18 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from catalogo.ia import ClaudeAdapter, ConCache, LocalAdapter, NormalizadorNombres, cadena_guardrails
 from comun.eventos import PublicadorEventos
 from notificaciones.puertos import BandejaMensajes
 from notificaciones.suscriptores import NotificadorCliente, NotificadorComerciantes
 from pagos.pasarelas import FabricaPasarelas, PlinAdapter, YapeAdapter
-from pedidos.externos import PlinClient, YapeSDK
+from pedidos.externos import ClienteClaudeSimulado, ModeloLocalSimulado, PlinClient, YapeSDK
 from pedidos.pedido import Cliente, Pedido
 from pedidos.servicio import ServicioPedidos
 from pedidos.tarifas import tarifas_por_defecto
 from reparto.suscriptores import AsignadorReparto
 
-__all__ = ["Aplicacion", "Cliente", "Pedido", "crear_servicio_pedidos"]
+__all__ = ["Aplicacion", "Cliente", "Pedido", "crear_normalizador", "crear_servicio_pedidos"]
 
 
 @dataclass
@@ -43,3 +44,10 @@ def crear_servicio_pedidos(yape=None, plin=None) -> Aplicacion:
 
     return Aplicacion(ServicioPedidos(fabrica, publicador, tarifas_por_defecto()), eventos)
 
+
+def crear_normalizador(catalogo: list[str], claude=None, local=None) -> NormalizadorNombres:
+    proveedores = {
+        "CLAUDE": ConCache(ClaudeAdapter(claude or ClienteClaudeSimulado())),
+        "LOCAL": ConCache(LocalAdapter(local or ModeloLocalSimulado())),
+    }
+    return NormalizadorNombres(proveedores, cadena_guardrails(catalogo), catalogo)
