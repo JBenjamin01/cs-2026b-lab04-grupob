@@ -1,4 +1,4 @@
-"""Pruebas que DEMUESTRAN cada patrón (Lab 07). Solo usan la versión con patrones."""
+"""Pruebas que DEMUESTRAN cada patrón (Lab 07, E2–E5). Solo usan la versión con patrones."""
 from decimal import Decimal
 from uuid import uuid4
 
@@ -6,12 +6,16 @@ import pytest
 
 from arranque import crear_servicio_pedidos
 from catalogo.modelos import Comerciante, Producto
+from comun.eventos import PublicadorEventos, Suscriptor
 from comun.excepciones import EstadoInvalidoError
+from notificaciones.puertos import BandejaMensajes
+from notificaciones.suscriptores import NotificadorCliente, NotificadorComerciantes
 from pagos.modelos import EstadoPago, Pago, PasarelaPago
-from pagos.pasarelas import FabricaPasarelas, PlinAdapter, YapeAdapter
+from pagos.pasarelas import ConReintentos, FabricaPasarelas, PlinAdapter, YapeAdapter
 from pedidos.externos import PlinClient, YapeSDK
-from pedidos.pedido import Cliente, Pedido, PedidoPuesto
+from pedidos.pedido import Cliente, LineaPedido, Pedido, PedidoPuesto
 from pedidos.servicio import ServicioPedidos
+from pedidos.tarifas import TarifaEnvio, tarifas_por_defecto
 
 
 @pytest.fixture
@@ -47,7 +51,7 @@ def test_open_closed_nuevo_medio_sin_modificar_el_servicio(productos):
     tarjeta = PasarelaTarjetaFalsa()
     fabrica = FabricaPasarelas()
     fabrica.registrar("TARJETA", lambda: tarjeta)            # solo se REGISTRA el medio nuevo
-    servicio = ServicioPedidos(fabrica, [])
+    servicio = ServicioPedidos(fabrica, PublicadorEventos(), tarifas_por_defecto())
     assert servicio.confirmar_y_pagar(nuevo_pedido(productos), "TARJETA") == "PAGADO"
     assert tarjeta.cobros == [Decimal("36.00")]
 
@@ -112,3 +116,111 @@ def test_state_ciclo_completo_hasta_entregado(productos):
     p.marcar_entregado()
     assert p.estado == "ENTREGADO"
     assert [pp.estado for pp in p.subpedidos] == ["ENTREGADO", "ENTREGADO"]
+
+
+# ================================ E4: OBSERVER, DECORATOR, COMPOSITE, STRATEGY (tarifa) ================================
+class Auditoria(Suscriptor):
+    def __init__(self):
+        self.registros = []
+
+    def actualizar(self, evento, datos):
+        self.registros.append((evento, datos["codigo"]))
+
+
+def test_observer_nuevo_suscriptor_sin_tocar_el_servicio(productos):
+    fabrica = FabricaPasarelas()
+    fabrica.registrar("YAPE", lambda: YapeAdapter(YapeSDK()))
+    publicador = PublicadorEventos()
+    auditoria = Auditoria()
+    publicador.suscribir("pedido_pagado", auditoria)      # interesado nuevo: solo se suscribe
+    ServicioPedidos(fabrica, publicador, tarifas_por_defecto()).confirmar_y_pagar(nuevo_pedido(productos), "YAPE")
+    assert auditoria.registros == [("pedido_pagado", "SC-0001")]
+
+
+def test_webhook_duplicado_se_ignora(productos):
+    class PasarelaPendiente(PasarelaTarjetaFalsa):
+        def iniciar_cobro(self, pedido_id, monto, celular, codigo_aprobacion):
+            return Pago(pedido_id, monto, "TX-9", EstadoPago.PENDIENTE)
+
+    fabrica = FabricaPasarelas()
+    fabrica.registrar("YAPE", PasarelaPendiente)
+    eventos = []
+    publicador = PublicadorEventos()
+    publicador.suscribir("pedido_pagado", NotificadorCliente(BandejaMensajes(eventos)))
+    servicio = ServicioPedidos(fabrica, publicador, tarifas_por_defecto())
+    p = nuevo_pedido(productos)
+    assert servicio.confirmar_y_pagar(p, "YAPE") == "PENDIENTE_PAGO"
+    confirmado = Pago(p.id, p.total(), "TX-9", EstadoPago.CONFIRMADO)
+    servicio.procesar_webhook_pago(p, confirmado)
+    servicio.procesar_webhook_pago(p, confirmado)   # el proveedor reenvía el webhook
+    assert p.estado == "PAGADO"
+    assert len(eventos) == 1
+
+
+def test_observer_un_aviso_por_puesto():
+    eventos = []
+    NotificadorComerciantes(BandejaMensajes(eventos)).actualizar("pedido_pagado", {
+        "codigo": "SC-9", "puestos": [{"celular": "1", "numero_puesto": "A", "productos": 2},
+                                      {"celular": "2", "numero_puesto": "B", "productos": 1}]})
+    assert eventos == ["whatsapp:1:Pedido SC-9 - 2 producto(s) para el puesto A",
+                       "whatsapp:2:Pedido SC-9 - 1 producto(s) para el puesto B"]
+
+
+class PasarelaQueFalla(PasarelaPago):
+    def __init__(self, timeouts, estado=EstadoPago.CONFIRMADO):
+        self.timeouts, self.estado, self.llamadas = timeouts, estado, 0
+
+    def iniciar_cobro(self, pedido_id, monto, celular, codigo_aprobacion):
+        self.llamadas += 1
+        if self.llamadas <= self.timeouts:
+            raise TimeoutError
+        return Pago(pedido_id, monto, "X", self.estado)
+
+    def reembolsar(self, referencia_proveedor, monto):
+        pass
+
+
+def test_decorator_reintentos_solo_ante_timeout():
+    interna = PasarelaQueFalla(timeouts=2)
+    assert ConReintentos(interna).iniciar_cobro(uuid4(), Decimal("1"), "9", "1").esta_confirmado()
+    assert interna.llamadas == 3
+    rechazo = PasarelaQueFalla(timeouts=0, estado=EstadoPago.RECHAZADO)
+    assert ConReintentos(rechazo).iniciar_cobro(uuid4(), Decimal("1"), "9", "1").estado is EstadoPago.RECHAZADO
+    assert rechazo.llamadas == 1                          # un rechazo NUNCA se reintenta
+
+
+def test_decorator_reintentos_agotados_marca_expirado():
+    pago = ConReintentos(PasarelaQueFalla(timeouts=5), intentos=3).iniciar_cobro(uuid4(), Decimal("1"), "9", "1")
+    assert pago.estado is EstadoPago.EXPIRADO
+
+
+def test_composite_subtotal_recursivo(productos):
+    papa, queso = productos
+    pp = PedidoPuesto(papa.comerciante)
+    pp.agregar(LineaPedido(papa, Decimal("2"), Decimal("3.50")))
+    pp.agregar(LineaPedido(papa, Decimal("1"), Decimal("3.50")))
+    assert pp.subtotal() == Decimal("10.50")             # compuesto = suma de sus hojas
+    p = nuevo_pedido(productos)
+    assert p.subtotal() == sum((item.subtotal() for item in p.subpedidos), Decimal("0"))
+    assert [type(i).__name__ for i in p.lineas()] == ["LineaPedido", "LineaPedido"]
+
+
+def test_composite_agrupa_por_puesto(productos):
+    papa, queso = productos
+    p = nuevo_pedido(productos)
+    p.agregar_linea(papa, Decimal("1"))                   # mismo puesto: no crea otro subpedido
+    assert [len(pp.lineas) for pp in p.subpedidos] == [2, 1]
+
+
+class TarifaPlana(TarifaEnvio):
+    def calcular(self, subtotal, distrito):
+        return Decimal("7")
+
+
+def test_strategy_tarifa_nueva_sin_tocar_el_servicio(productos):
+    fabrica = FabricaPasarelas()
+    fabrica.registrar("YAPE", lambda: YapeAdapter(YapeSDK()))
+    tarifas = tarifas_por_defecto() | {"DELIVERY": TarifaPlana()}
+    p = nuevo_pedido(productos, "DELIVERY", "Socabaya")
+    ServicioPedidos(fabrica, PublicadorEventos(), tarifas).confirmar_y_pagar(p, "YAPE")
+    assert p.costo_envio == Decimal("7")
