@@ -1,4 +1,8 @@
-"""Módulo Pagos — entidad Pago, su estado y el puerto PasarelaPago (ADR-001, ADR-004)."""
+"""Módulo Pagos — entidad Pago, su estado y el puerto PasarelaPago (ADR-001, ADR-004, ADR-005).
+
+Lab 07: reembolsar() recibe la referencia del proveedor (no el id interno del pago), porque es
+lo que los proveedores necesitan para devolver un cobro (CA-3 del Lab 05).
+"""
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
@@ -20,7 +24,7 @@ class EstadoPago(Enum):
 class Pago:
     pedido_id: UUID
     monto: Decimal
-    referencia_proveedor: str
+    referencia_proveedor: str | None
     estado: EstadoPago = EstadoPago.PENDIENTE
     fecha_hora: datetime = field(default_factory=datetime.now)
     id: UUID = field(default_factory=uuid4)
@@ -30,7 +34,7 @@ class Pago:
 
 
 class PasarelaPago(ABC):
-    """Puerto hacia el proveedor de pagos que cobra con Yape (R-05)."""
+    """STRATEGY (puerto): todas las formas de cobrar se usan igual."""
 
     @abstractmethod
     def iniciar_cobro(
@@ -38,16 +42,4 @@ class PasarelaPago(ABC):
     ) -> Pago: ...
 
     @abstractmethod
-    def reembolsar(self, pago_id: UUID, monto: Decimal) -> None: ...
-
-
-class YapeAdapter(PasarelaPago):
-    """Adaptador del proveedor de pagos. El código de aprobación no se almacena."""
-
-    def iniciar_cobro(
-        self, pedido_id: UUID, monto: Decimal, celular: str, codigo_aprobacion: str
-    ) -> Pago:
-        raise NotImplementedError("Integrar con la API del proveedor de pagos")
-
-    def reembolsar(self, pago_id: UUID, monto: Decimal) -> None:
-        raise NotImplementedError("Integrar con la API del proveedor de pagos")
+    def reembolsar(self, referencia_proveedor: str, monto: Decimal) -> None: ...

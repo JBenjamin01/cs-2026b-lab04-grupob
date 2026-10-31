@@ -1,0 +1,37 @@
+@startuml strategy-tarifas
+' Lab 07 (E4): Strategy — tarifa de delivery — src/pedidos/tarifas.py
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam dpi 130
+skinparam classBackgroundColor #EEF2F8
+skinparam classBorderColor #1A3A5C
+skinparam noteBackgroundColor #FFF8E1
+skinparam noteBorderColor #F9A825
+hide empty members
+title Tarifa de delivery: Strategy
+
+class ServicioPedidos <<cliente>> {
+  -tarifas: dict[str, TarifaEnvio]
+}
+interface TarifaEnvio <<Strategy>> {
+  +calcular(subtotal, distrito): Decimal
+}
+class TarifaRecojo {
+  +calcular(...): 0
+}
+class TarifaPorZona {
+  -zonas: dict[str, Decimal]
+  -por_defecto: Decimal = 12
+  -gratis_desde: Decimal = 150
+  +calcular(subtotal, distrito): Decimal
+}
+ServicioPedidos o--> "1..*" TarifaEnvio : elige por tipo de entrega
+TarifaEnvio <|.. TarifaRecojo
+TarifaEnvio <|.. TarifaPorZona
+note right of TarifaPorZona
+  Cercado, Selva Alegre: S/ 5
+  Yanahuara, Cayma, Miraflores: S/ 8
+  Otros distritos: S/ 12; gratis desde S/ 150
+end note
+@enduml

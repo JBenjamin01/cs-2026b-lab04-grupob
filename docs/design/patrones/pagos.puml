@@ -1,0 +1,69 @@
+@startuml pagos-patrones
+' Lab 07 (E2 y E4): pagos con Strategy + Adapter + Factory + Decorator — src/pagos/
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam dpi 130
+skinparam classBackgroundColor #EEF2F8
+skinparam classBorderColor #1A3A5C
+skinparam noteBackgroundColor #FFF8E1
+skinparam noteBorderColor #F9A825
+hide empty members
+title Pagos: Strategy + Adapter + Factory + Decorator
+
+class ServicioPedidos <<cliente>> {
+  +confirmar_y_pagar(pedido, medio, codigo_aprobacion): str
+  +rechazar_puesto(pedido, comerciante, motivo): str
+}
+class FabricaPasarelas <<Factory>> {
+  -creadores: dict[str, Callable]
+  -intentos: int
+  +registrar(medio, creador)
+  +crear(medio): PasarelaPago
+}
+interface PasarelaPago <<Strategy>> {
+  +iniciar_cobro(pedido_id, monto, celular, codigo_aprobacion): Pago
+  +reembolsar(referencia_proveedor, monto)
+}
+class YapeAdapter <<Adapter>>
+class PlinAdapter <<Adapter>>
+class ConReintentos <<Decorator>> {
+  -interna: PasarelaPago
+  -intentos: int
+}
+class YapeSDK <<externo>> {
+  +cobrar_yape(celular, monto_soles, codigo): dict
+  +devolver(id_transaccion, monto_soles): dict
+}
+class PlinClient <<externo>> {
+  +charge(amount_cents, phone, otp): tuple
+  +refund(tx_id, amount_cents): int
+}
+class Pago {
+  -referencia_proveedor: str
+  -estado: EstadoPago
+  +esta_confirmado(): bool
+}
+
+ServicioPedidos ..> FabricaPasarelas : pide la estrategia
+ServicioPedidos ..> PasarelaPago : usa
+FabricaPasarelas ..> ConReintentos : crea
+PasarelaPago <|.. YapeAdapter
+PasarelaPago <|.. PlinAdapter
+PasarelaPago <|.. ConReintentos
+ConReintentos o--> "1" PasarelaPago : envuelve
+YapeAdapter --> YapeSDK : traduce
+PlinAdapter --> PlinClient : traduce
+PasarelaPago ..> Pago : devuelve
+
+note right of FabricaPasarelas
+  Medio nuevo (p. ej., tarjeta) = registrar un creador.
+  ServicioPedidos no cambia (abierto/cerrado).
+  No es Singleton: se inyecta (pruebas con SDK simulados).
+end note
+note bottom of ConReintentos
+  Reintenta SOLO ante TimeoutError.
+  Un rechazo nunca se reintenta (evita cobros duplicados).
+  Reintentos agotados: Pago EXPIRADO.
+end note
+@enduml

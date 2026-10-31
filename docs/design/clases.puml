@@ -1,8 +1,9 @@
 @startuml clases-pedidos
-' San Camilo en Línea — Diagrama de clases de diseño (E1, Lab 05)
-' Historia: HU-03 (docs/design/historia.md). Arquitectura: ADR-001 (monolito modular,
-' puertos y adaptadores), ADR-002 (estados separados de pedido y pago), ADR-004 (puertos con tipos neutrales).
-' Supuesto: el código de aprobación de Yape no se almacena; solo es parámetro de iniciarCobro().
+' San Camilo en Línea — Diagrama de clases de diseño
+' Lab 05 (E1) actualizado en el Lab 07 (E7) con los patrones de diseño aplicados al código.
+' Convención (regla C5 del Lab 05): camelCase aquí = snake_case en Python (calcularTotal = calcular_total).
+' Arquitectura: ADR-001 (monolito modular), ADR-002 (estados), ADR-004 (puertos neutrales), ADR-005 (patrones).
+' Los estados concretos (State) se detallan en docs/design/patrones/state.puml.
 skinparam classAttributeIconSize 0
 skinparam shadowing false
 skinparam defaultFontName Arial
@@ -14,112 +15,111 @@ skinparam packageBorderColor #7F7F7F
 skinparam nodesep 30
 skinparam ranksep 45
 hide empty members
-title San Camilo en Línea — Módulos Pedidos, Pagos, Catálogo, Notificaciones y Reparto (diseño)
+title San Camilo en Línea — Diseño de clases con patrones (Lab 05 actualizado en el Lab 07)
 
 package "pedidos" {
   class Cliente {
-    - id: UUID
     - nombre: String
     - celular: String
     - direccion: String
   }
-  class Pedido {
+  abstract class ItemPedido <<Composite>> {
+    + subtotal(): Decimal
+  }
+  class Pedido <<Composite raíz>> {
     - id: UUID
-    - codigoSeguimiento: String
-    - fechaCreacion: DateTime
-    - estado: EstadoPedido
+    - codigo: String
     - tipoEntrega: TipoEntrega
+    - distrito: String [0..1]
     - costoEnvio: Decimal
+    - medioPago: String [0..1]
     + agregarLinea(producto: Producto, cantidad: Decimal): void
-    + calcularTotal(): Decimal
+    + subtotal(): Decimal
+    + total(): Decimal
+    + lineas(): Iterator<LineaPedido>
+    + subpedidoDe(comerciante: Comerciante): PedidoPuesto
     + confirmar(): void
     + registrarPago(pago: Pago): void
     + cancelar(motivo: String): void
-    + buscarSubpedido(subpedidoId: UUID): PedidoPuesto
     + marcarPreparado(): void
     + marcarEnCamino(): void
     + marcarEntregado(): void
+    ~ cambiarA(nuevo: EstadoPedido): void
   }
-  class PedidoPuesto {
+  class PedidoPuesto <<Composite>> {
     - id: UUID
-    - estado: EstadoPedidoPuesto
     - motivoRechazo: String [0..1]
-    - fechaActualizacion: DateTime
-    + calcularSubtotal(): Decimal
+    + subtotal(): Decimal
     + recibir(): void
     + marcarListo(): void
     + rechazar(motivo: String): void
     + marcarRecogido(repartidorId: UUID, codigoRecojo: String): void
     + marcarEntregado(): void
     + anular(): void
+    ~ cambiarA(nuevo: EstadoPedidoPuesto): void
   }
-  class LineaPedido {
+  class LineaPedido <<Leaf>> {
     - cantidad: Decimal
     - precioUnitario: Decimal
-    + calcularSubtotal(): Decimal
+    + subtotal(): Decimal
   }
-  enum EstadoPedido {
-    CREADO
-    PENDIENTE_PAGO
-    PAGADO
-    PREPARADO
-    EN_CAMINO
-    ENTREGADO
-    CANCELADO
+  abstract class EstadoPedido <<State>> {
+    + nombre: String
   }
-  enum EstadoPedidoPuesto {
-    PENDIENTE
-    RECIBIDO
-    LISTO
-    RECOGIDO
-    ENTREGADO
-    RECHAZADO
-    ANULADO
+  abstract class EstadoPedidoPuesto <<State>> {
+    + nombre: String
   }
   enum TipoEntrega {
     RECOJO_MERCADO
     DELIVERY
   }
+  interface TarifaEnvio <<Strategy>> {
+    + calcular(subtotal: Decimal, distrito: String): Decimal
+  }
+  class TarifaRecojo
+  class TarifaPorZona
   class ServicioPedidos <<servicio>> {
-    + confirmarYPagar(pedidoId: UUID, celular: String, codigoAprobacion: String): Pedido
-    + procesarWebhookPago(pedidoId: UUID, pago: Pago): void
-    + procesarRechazoPuesto(subpedidoId: UUID, motivo: String): void
-    + cancelarPorTiempoAgotado(pedidoId: UUID): void
+    + confirmarYPagar(pedido: Pedido, medio: String, codigoAprobacion: String): String
+    + procesarWebhookPago(pedido: Pedido, pago: Pago): void
+    + cancelarPorTiempoAgotado(pedido: Pedido): void
+    + rechazarPuesto(pedido: Pedido, comerciante: Comerciante, motivo: String): String
   }
   interface RepositorioPedidos <<puerto>> {
     + buscarPorId(id: UUID): Pedido
-    + buscarPorSubpedido(subpedidoId: UUID): Pedido
     + guardar(pedido: Pedido): void
   }
 }
 
 package "catalogo" {
   class Comerciante {
-    - id: UUID
     - nombre: String
     - numeroPuesto: String
     - celular: String
   }
   class Producto {
-    - id: UUID
     - nombre: String
     - precio: Decimal
-    - unidadMedida: String
     - stockDisponible: Decimal
-    - disponible: Boolean
     + reservar(cantidad: Decimal): void
     + liberar(cantidad: Decimal): void
+  }
+  class NormalizadorNombres {
+    + sugerirNombre(nombre: String, proveedor: String): String [0..1]
+  }
+  interface ProveedorLLM <<Strategy>> {
+    + completar(prompt: String): String
+  }
+  abstract class Guardrail <<Chain of Responsibility>> {
+    + validar(texto: String): String
   }
 }
 
 package "pagos" {
   class Pago {
-    - id: UUID
     - pedidoId: UUID
     - monto: Decimal
-    - referenciaProveedor: String
+    - referenciaProveedor: String [0..1]
     - estado: EstadoPago
-    - fechaHora: DateTime
     + estaConfirmado(): Boolean
   }
   enum EstadoPago {
@@ -128,11 +128,27 @@ package "pagos" {
     RECHAZADO
     EXPIRADO
   }
-  interface PasarelaPago <<puerto>> {
+  interface PasarelaPago <<Strategy / puerto>> {
     + iniciarCobro(pedidoId: UUID, monto: Decimal, celular: String, codigoAprobacion: String): Pago
-    + reembolsar(pagoId: UUID, monto: Decimal): void
+    + reembolsar(referenciaProveedor: String, monto: Decimal): void
   }
-  class YapeAdapter <<adaptador>>
+  class YapeAdapter <<Adapter>>
+  class PlinAdapter <<Adapter>>
+  class ConReintentos <<Decorator>>
+  class FabricaPasarelas <<Factory>> {
+    + registrar(medio: String, creador: Callable): void
+    + crear(medio: String): PasarelaPago
+  }
+}
+
+package "comun" {
+  class PublicadorEventos <<Observer: sujeto>> {
+    + suscribir(evento: String, suscriptor: Suscriptor): void
+    + publicar(evento: String, datos: Map): void
+  }
+  interface Suscriptor <<Observer>> {
+    + actualizar(evento: String, datos: Map): void
+  }
 }
 
 package "notificaciones" {
@@ -140,56 +156,65 @@ package "notificaciones" {
     + notificarComerciante(celular: String, resumen: String): void
     + notificarCliente(celular: String, mensaje: String): void
   }
-  class WhatsAppAdapter <<adaptador>>
+  class NotificadorComerciantes
+  class NotificadorCliente
 }
 
 package "reparto" {
   class Repartidor {
-    - id: UUID
-    - nombre: String
-    - celular: String
-    - disponible: Boolean
     + tomarPedido(pedido: Pedido): void
   }
+  class AsignadorReparto
 }
 
-' --- Relaciones estructurales (multiplicidad en ambos extremos, regla C3) ---
-Pedido "0..*" --> "1" Cliente : pertenece a >
+' --- Composite (multiplicidades del Lab 05, regla C3) ---
+ItemPedido <|-- Pedido
+ItemPedido <|-- PedidoPuesto
+ItemPedido <|-- LineaPedido
 Pedido "1" *-- "1..*" PedidoPuesto : se divide en >
 PedidoPuesto "1" *-- "1..*" LineaPedido : contiene >
+Pedido "0..*" --> "1" Cliente : pertenece a >
 LineaPedido "0..*" --> "1" Producto : referencia >
 PedidoPuesto "0..*" --> "1" Comerciante : lo atiende >
 Producto "0..*" --> "1" Comerciante : publicado por >
 Pedido "1" --> "0..1" Pago : se paga con >
+Pedido --> TipoEntrega
 Repartidor "0..1" --> "0..*" Pedido : reparte >
 
-Pedido --> EstadoPedido
-Pedido --> TipoEntrega
-PedidoPuesto --> EstadoPedidoPuesto
-Pago --> EstadoPago
+' --- State ---
+Pedido o--> "1" EstadoPedido : estado actual
+PedidoPuesto o--> "1" EstadoPedidoPuesto : estado actual
 
-' --- Puertos y adaptadores (ADR-001) ---
+' --- Strategy, Adapter, Decorator, Factory ---
+TarifaEnvio <|.. TarifaRecojo
+TarifaEnvio <|.. TarifaPorZona
 PasarelaPago <|.. YapeAdapter
-NotificadorMensajeria <|.. WhatsAppAdapter
+PasarelaPago <|.. PlinAdapter
+PasarelaPago <|.. ConReintentos
+ConReintentos o--> "1" PasarelaPago : envuelve
+FabricaPasarelas ..> PasarelaPago : crea
+Pago --> EstadoPago
+NormalizadorNombres o--> "1..*" ProveedorLLM
+NormalizadorNombres --> "1" Guardrail : primer eslabón
 
-' --- Dependencias del servicio de aplicación ---
+' --- Observer ---
+PublicadorEventos o--> "0..*" Suscriptor
+Suscriptor <|.. NotificadorComerciantes
+Suscriptor <|.. NotificadorCliente
+Suscriptor <|.. AsignadorReparto
+NotificadorComerciantes ..> NotificadorMensajeria
+NotificadorCliente ..> NotificadorMensajeria
+
+' --- Servicio ---
 ServicioPedidos ..> Pedido
+ServicioPedidos ..> FabricaPasarelas
+ServicioPedidos o--> "1..*" TarifaEnvio
+ServicioPedidos ..> PublicadorEventos : publica
 ServicioPedidos ..> RepositorioPedidos
-ServicioPedidos ..> PasarelaPago
-ServicioPedidos ..> NotificadorMensajeria
 
-' --- Solo para la disposición del dibujo (no son relaciones UML) ---
-EstadoPedidoPuesto -[hidden]down- Pago
-LineaPedido -[hidden]down- PasarelaPago
-EstadoPedidoPuesto -[hidden]down- NotificadorMensajeria
-
-note bottom of Pago
-  Pago guarda solo pedidoId (no una referencia a Pedido):
-  así pagos no depende de pedidos (C4, ADR-002).
-end note
-note bottom of NotificadorMensajeria
-  Los puertos reciben tipos neutrales (String, UUID, Decimal),
-  nunca clases de pedidos: evita el ciclo
-  pedidos <-> notificaciones (ADR-004).
+note bottom of PublicadorEventos
+  Lab 07: pedidos ya no depende de notificaciones:
+  publica eventos con datos neutrales y los suscriptores
+  se conectan en arranque.py (raíz de composición).
 end note
 @enduml

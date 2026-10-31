@@ -1,0 +1,58 @@
+@startuml ia-aislada
+' Lab 07 (E5): IA aislada — Strategy + Adapter + Decorator + Chain of Responsibility — src/catalogo/ia.py
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam dpi 130
+skinparam classBackgroundColor #EEF2F8
+skinparam classBorderColor #1A3A5C
+skinparam noteBackgroundColor #FFF8E1
+skinparam noteBorderColor #F9A825
+hide empty members
+title IA aislada: Strategy + Adapter + Decorator + Chain of Responsibility
+
+class NormalizadorNombres {
+  -catalogo: list[str]
+  +sugerir_nombre(nombre, proveedor): str | None
+}
+interface ProveedorLLM <<Strategy>> {
+  +completar(prompt): str
+}
+class ClaudeAdapter <<Adapter>>
+class LocalAdapter <<Adapter>>
+class ConCache <<Decorator>> {
+  -cache: dict[str, str]
+}
+abstract class Guardrail <<Handler>> {
+  -siguiente: Guardrail
+  +validar(texto): str
+  #_aplicar(texto): str
+}
+class LimpiarFormato
+class SinPreciosNiCantidades
+class LongitudMaxima {
+  -maximo: int = 40
+}
+class SoloDelCatalogo {
+  -canonicos: dict
+}
+
+NormalizadorNombres o--> "1..*" ProveedorLLM : usa
+NormalizadorNombres --> "1" Guardrail : primer eslabón
+ProveedorLLM <|.. ClaudeAdapter
+ProveedorLLM <|.. LocalAdapter
+ProveedorLLM <|.. ConCache
+ConCache o--> "1" ProveedorLLM : envuelve
+Guardrail <|-- LimpiarFormato
+Guardrail <|-- SinPreciosNiCantidades
+Guardrail <|-- LongitudMaxima
+Guardrail <|-- SoloDelCatalogo
+Guardrail o--> "0..1" Guardrail : siguiente
+
+note bottom of Guardrail
+  La salida del LLM es un dato NO confiable:
+  LimpiarFormato -> SinPreciosNiCantidades -> LongitudMaxima -> SoloDelCatalogo.
+  Si un eslabón falla, sugerir_nombre() devuelve None
+  y el comerciante elige el nombre a mano.
+end note
+@enduml
