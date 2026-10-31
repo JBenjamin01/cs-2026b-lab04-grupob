@@ -20,3 +20,16 @@ class WhatsAppAdapter(NotificadorMensajeria):
 
     def notificar_cliente(self, celular: str, mensaje: str) -> None:
         raise NotImplementedError("Encolar plantilla aprobada de WhatsApp Business")
+
+
+class BandejaMensajes(NotificadorMensajeria):
+    """Adaptador en memoria (desarrollo y pruebas): guarda los mensajes en una lista."""
+
+    def __init__(self, bandeja: list[str]):
+        self._bandeja = bandeja
+
+    def notificar_comerciante(self, celular: str, resumen: str) -> None:
+        self._bandeja.append(f"whatsapp:{celular}:{resumen}")
+
+    def notificar_cliente(self, celular: str, mensaje: str) -> None:
+        self._bandeja.append(f"whatsapp:{celular}:{mensaje}")

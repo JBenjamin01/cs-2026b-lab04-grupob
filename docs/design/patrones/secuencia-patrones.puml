@@ -1,0 +1,44 @@
+@startuml secuencia-patrones
+' Lab 07: confirmar_y_pagar() después del refactor — los patrones colaborando
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam dpi 130
+skinparam sequenceMessageAlign center
+autonumber
+title confirmar_y_pagar() después del refactor: los patrones colaborando
+
+participant "ServicioPedidos" as S
+participant "FabricaPasarelas\n<<Factory>>" as F
+participant "Pedido\n<<State + Composite>>" as P
+participant "TarifaPorZona\n<<Strategy>>" as T
+participant "ConReintentos\n<<Decorator>>" as R
+participant "YapeAdapter\n<<Adapter>>" as A
+participant "PublicadorEventos\n<<Observer>>" as O
+participant "Notificador\nComerciantes" as NC
+participant "Notificador\nCliente" as NCL
+participant "Asignador\nReparto" as AR
+
+S -> F : crear("YAPE")
+F --> S : ConReintentos(YapeAdapter)
+S -> P : confirmar()
+note right of P : Creado -> PendientePago\n(reserva el stock)
+S -> T : calcular(subtotal, distrito)
+T --> S : costo_envio
+S -> R : iniciar_cobro(id, total, celular, codigo)
+loop hasta 3 intentos si hay TimeoutError
+  R -> A : iniciar_cobro(...)
+  A --> R : Pago
+end
+R --> S : Pago
+alt pago confirmado
+  S -> P : registrar_pago(pago)
+  note right of P : PendientePago -> Pagado\nsubpedidos: Pendiente -> Recibido
+  S -> O : publicar("pedido_pagado", datos)
+  O -> NC : actualizar(...)
+  O -> NCL : actualizar(...)
+  O -> AR : actualizar(...)
+else rechazado o expirado
+  S -> P : cancelar("pago rechazado")
+  note right of P : PendientePago -> Cancelado\n(libera el stock)
+end
+@enduml

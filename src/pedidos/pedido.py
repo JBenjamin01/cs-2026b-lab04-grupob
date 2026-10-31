@@ -1,10 +1,12 @@
-"""Pedido multipuesto (Lab 07, E3): contexto del patrón STATE.
+"""Pedido multipuesto (Lab 07): COMPOSITE + contexto del patrón STATE.
 
-Pedido y PedidoPuesto ya no tienen condicionales sobre su estado: delegan cada transición al
-objeto estado (pedidos/estados.py).
+COMPOSITE: Pedido (raíz) contiene PedidoPuesto (compuestos), que contienen LineaPedido (hojas).
+Los tres son ItemPedido y responden subtotal() de la misma forma, así que el total del pedido
+se calcula recorriendo el árbol sin preguntar qué tipo de elemento es cada uno.
 """
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import ROUND_HALF_UP, Decimal
@@ -12,9 +14,9 @@ from enum import Enum
 from typing import Iterator
 from uuid import UUID, uuid4
 
-from catalogo.modelos import Comerciante, Producto
+from catalogo import Comerciante, Producto
 from comun.excepciones import ReglaNegocioError
-from pagos.modelos import Pago
+from pagos import Pago
 from pedidos.estados import Creado, EstadoPedido, EstadoPedidoPuesto, Pendiente
 
 
@@ -35,7 +37,15 @@ class Cliente:
     direccion: str
 
 
-class LineaPedido:
+class ItemPedido(ABC):
+    """COMPOSITE: componente común de hojas y compuestos."""
+
+    @abstractmethod
+    def subtotal(self) -> Decimal: ...
+
+
+class LineaPedido(ItemPedido):
+    """Hoja: un producto de un puesto."""
 
     def __init__(self, producto: Producto, cantidad: Decimal, precio_unitario: Decimal):
         self.producto = producto
@@ -46,8 +56,8 @@ class LineaPedido:
         return self.precio_unitario * self.cantidad
 
 
-class PedidoPuesto:
-    """La parte del pedido que prepara un puesto. Contexto de EstadoPedidoPuesto."""
+class PedidoPuesto(ItemPedido):
+    """Compuesto: la parte del pedido que prepara un puesto. Contexto de EstadoPedidoPuesto."""
 
     def __init__(self, comerciante: Comerciante):
         self.comerciante = comerciante
@@ -91,8 +101,8 @@ class PedidoPuesto:
         self._estado.anular(self)
 
 
-class Pedido:
-    """Contexto de EstadoPedido."""
+class Pedido(ItemPedido):
+    """Raíz del Composite y contexto de EstadoPedido."""
 
     def __init__(self, cliente: Cliente, tipo_entrega: str = "RECOJO_MERCADO",
                  distrito: str | None = None, codigo: str | None = None):
@@ -115,6 +125,7 @@ class Pedido:
     def cambiar_a(self, nuevo: EstadoPedido) -> None:
         self._estado = nuevo
 
+    # --- Composite ---
     def subtotal(self) -> Decimal:
         activos = (pp for pp in self.subpedidos if pp.estado not in ("RECHAZADO", "ANULADO"))
         return sum((pp.subtotal() for pp in activos), Decimal("0"))

@@ -1,4 +1,6 @@
 """Módulo Notificaciones. Interfaz pública del módulo."""
-from notificaciones.puertos import NotificadorMensajeria, WhatsAppAdapter
+from notificaciones.puertos import BandejaMensajes, NotificadorMensajeria, WhatsAppAdapter
+from notificaciones.suscriptores import NotificadorCliente, NotificadorComerciantes
 
-__all__ = ["NotificadorMensajeria", "WhatsAppAdapter"]
+__all__ = ["BandejaMensajes", "NotificadorCliente", "NotificadorComerciantes",
+           "NotificadorMensajeria", "WhatsAppAdapter"]

@@ -1,0 +1,51 @@
+@startuml composite-pedido
+' Lab 07 (E4): Composite — pedido de varios puestos — src/pedidos/pedido.py
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam dpi 130
+skinparam classBackgroundColor #EEF2F8
+skinparam classBorderColor #1A3A5C
+skinparam noteBackgroundColor #FFF8E1
+skinparam noteBorderColor #F9A825
+hide empty members
+title Pedido de varios puestos: Composite
+
+abstract class ItemPedido <<Component>> {
+  +subtotal(): Decimal
+}
+class LineaPedido <<Leaf>> {
+  -producto: Producto
+  -cantidad: Decimal
+  -precio_unitario: Decimal
+  +subtotal(): Decimal
+}
+class PedidoPuesto <<Composite>> {
+  -comerciante: Comerciante
+  +agregar(linea)
+  +subtotal(): Decimal
+}
+class Pedido <<Composite raíz>> {
+  -costo_envio: Decimal
+  +agregar_linea(producto, cantidad)
+  +subtotal(): Decimal
+  +total(): Decimal
+  +lineas(): Iterator[LineaPedido]
+}
+
+ItemPedido <|-- LineaPedido
+ItemPedido <|-- PedidoPuesto
+ItemPedido <|-- Pedido
+Pedido "1" *-- "1..*" PedidoPuesto : se divide en
+PedidoPuesto "1" *-- "1..*" LineaPedido : contiene
+
+note right of Pedido
+  total() = a_soles(subtotal() + costo_envio)
+  subtotal() suma los subpedidos activos
+  (sin RECHAZADO ni ANULADO).
+end note
+note bottom of LineaPedido
+  El total se calcula recorriendo el árbol
+  sin preguntar qué tipo de elemento es cada uno.
+end note
+@enduml
