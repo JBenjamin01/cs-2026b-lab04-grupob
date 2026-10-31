@@ -1,0 +1,30 @@
+# Reto opcional B del Lab 07: pruebas y complejidad en cada push y Pull Request.
+# Falla si alguna prueba falla o si algún bloque de la versión con patrones supera complejidad 10 (rango C o peor).
+# La versión antes (src/pedidos/antes) se excluye a propósito: se conserva solo para comparar.
+name: calidad
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  pruebas-y-complejidad:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Instalar dependencias
+        run: pip install pytest radon
+      - name: Pruebas
+        run: python -m pytest -q tests
+      - name: Complejidad ciclomática (ningún bloque en C o peor)
+        run: |
+          radon cc -s -a src --exclude "src/pedidos/antes/*"
+          complejos=$(radon cc --min C src --exclude "src/pedidos/antes/*")
+          if [ -n "$complejos" ]; then
+            echo "Bloques con complejidad mayor a 10:"
+            echo "$complejos"
+            exit 1
+          fi
