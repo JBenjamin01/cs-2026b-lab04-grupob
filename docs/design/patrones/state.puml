@@ -1,0 +1,70 @@
+@startuml state-pedidopuesto
+' Lab 07 (E3): State — implementa estados-pedidopuesto.mmd (Lab 05) — src/pedidos/estados.py
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam dpi 130
+skinparam classBackgroundColor #EEF2F8
+skinparam classBorderColor #1A3A5C
+skinparam noteBackgroundColor #FFF8E1
+skinparam noteBorderColor #F9A825
+hide empty members
+title Ciclo de vida del subpedido: State (máquina de estados del Lab 05)
+
+class PedidoPuesto <<contexto>> {
+  -_estado: EstadoPedidoPuesto
+  +estado: str
+  +recibir()
+  +marcar_listo()
+  +rechazar(motivo)
+  +marcar_recogido(repartidor_id, codigo_recojo)
+  +marcar_entregado()
+  +anular()
+  ~cambiar_a(nuevo)
+}
+abstract class EstadoPedidoPuesto <<State>> {
+  +recibir(pp)
+  +marcar_listo(pp)
+  +rechazar(pp, motivo)
+  +marcar_recogido(pp, repartidor_id, codigo)
+  +marcar_entregado(pp)
+  +anular(pp)
+}
+class Pendiente {
+  +recibir(pp)
+  +anular(pp)
+}
+class Recibido {
+  +marcar_listo(pp)
+  +rechazar(pp, motivo)
+}
+class Listo {
+  +marcar_recogido(pp, ...)
+}
+class Recogido {
+  +marcar_entregado(pp)
+}
+class EntregadoPuesto
+class Rechazado
+class Anulado
+
+PedidoPuesto o--> "1" EstadoPedidoPuesto : estado actual
+EstadoPedidoPuesto <|-- Pendiente
+EstadoPedidoPuesto <|-- Recibido
+EstadoPedidoPuesto <|-- Listo
+EstadoPedidoPuesto <|-- Recogido
+EstadoPedidoPuesto <|-- EntregadoPuesto
+EstadoPedidoPuesto <|-- Rechazado
+EstadoPedidoPuesto <|-- Anulado
+
+note right of EstadoPedidoPuesto
+  Por defecto, toda operación lanza EstadoInvalidoError.
+  Cada estado redefine SOLO sus transiciones del Lab 05.
+  Los estados finales (Entregado, Rechazado, Anulado) no redefinen nada.
+end note
+note bottom of Pendiente
+  La misma estructura se aplica a Pedido (EstadoPedido):
+  Creado, PendientePago, Pagado, Preparado, EnCamino,
+  Entregado y Cancelado (nombres de ADR-002).
+end note
+@enduml

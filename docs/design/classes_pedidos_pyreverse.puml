@@ -1,77 +1,188 @@
 @startuml classes_pedidos
-skinparam dpi 130
+skinparam dpi 120
 skinparam defaultFontName Arial
 skinparam shadowing false
 set namespaceSeparator none
-class "Cliente" as pedidos.dominio.Cliente {
-  celular : str
-  direccion : str
-  id : UUID
+class "Anulado" as pedidos.estados.Anulado {
   nombre : str
 }
-class "EstadoPedido" as pedidos.dominio.EstadoPedido {
-  name
+class "Cancelado" as pedidos.estados.Cancelado {
+  nombre : str
 }
-class "EstadoPedidoPuesto" as pedidos.dominio.EstadoPedidoPuesto {
-  name
+class "Cliente" as pedidos.pedido.Cliente {
+  celular : str
+  direccion : str
+  nombre : str
 }
-class "LineaPedido" as pedidos.dominio.LineaPedido {
+class "Creado" as pedidos.estados.Creado {
+  nombre : str
+  agregar_linea(pedido, producto, cantidad)
+  cancelar(pedido, motivo)
+  confirmar(pedido)
+}
+class "EnCamino" as pedidos.estados.EnCamino {
+  nombre : str
+  marcar_entregado(pedido)
+}
+class "Entregado" as pedidos.estados.Entregado {
+  nombre : str
+}
+class "EntregadoPuesto" as pedidos.estados.EntregadoPuesto {
+  nombre : str
+}
+class "EstadoPedido" as pedidos.estados.EstadoPedido {
+  nombre : str
+  agregar_linea(pedido: Pedido, producto: Producto, cantidad) -> None
+  cancelar(pedido: Pedido, motivo: str) -> None
+  confirmar(pedido: Pedido) -> None
+  marcar_en_camino(pedido: Pedido) -> None
+  marcar_entregado(pedido: Pedido) -> None
+  marcar_preparado(pedido: Pedido) -> None
+  registrar_pago(pedido: Pedido, pago: Pago) -> None
+}
+class "EstadoPedidoPuesto" as pedidos.estados.EstadoPedidoPuesto {
+  nombre : str
+  anular(pp: PedidoPuesto) -> None
+  marcar_entregado(pp: PedidoPuesto) -> None
+  marcar_listo(pp: PedidoPuesto) -> None
+  marcar_recogido(pp: PedidoPuesto, repartidor_id, codigo_recojo: str) -> None
+  rechazar(pp: PedidoPuesto, motivo: str) -> None
+  recibir(pp: PedidoPuesto) -> None
+}
+class "ItemPedido" as pedidos.pedido.ItemPedido {
+  {abstract}subtotal() -> Decimal
+}
+class "LineaPedido" as pedidos.pedido.LineaPedido {
   cantidad
   precio_unitario
   producto : Producto
-  calcular_subtotal() -> Decimal
+  subtotal() -> Decimal
 }
-class "Pedido" as pedidos.dominio.Pedido {
+class "Listo" as pedidos.estados.Listo {
+  nombre : str
+  marcar_recogido(pp, repartidor_id, codigo_recojo)
+}
+class "Pagado" as pedidos.estados.Pagado {
+  nombre : str
+  marcar_preparado(pedido)
+}
+class "Pedido" as pedidos.pedido.Pedido {
   cliente
-  codigo_seguimiento : str
+  codigo : str
   costo_envio
-  estado
+  distrito : str | None
+  estado : str
   fecha_creacion : datetime
   id : UUID
+  medio_pago : str | None
   pago : Pago | None
   subpedidos : list[PedidoPuesto]
   tipo_entrega
   agregar_linea(producto: Producto, cantidad: Decimal) -> None
-  buscar_subpedido(subpedido_id: UUID) -> PedidoPuesto
-  calcular_total() -> Decimal
+  cambiar_a(nuevo: EstadoPedido) -> None
   cancelar(motivo: str) -> None
   confirmar() -> None
+  lineas() -> Iterator[LineaPedido]
   marcar_en_camino() -> None
   marcar_entregado() -> None
   marcar_preparado() -> None
   registrar_pago(pago: Pago) -> None
+  subpedido_de(comerciante: Comerciante) -> PedidoPuesto
+  subtotal() -> Decimal
+  total() -> Decimal
 }
-class "PedidoPuesto" as pedidos.dominio.PedidoPuesto {
+class "PedidoPuesto" as pedidos.pedido.PedidoPuesto {
   comerciante : Comerciante
-  estado
+  estado : str
   fecha_actualizacion : datetime
   id : UUID
   lineas : list[LineaPedido]
   motivo_rechazo : str | None
+  agregar(linea: LineaPedido) -> None
   anular() -> None
-  calcular_subtotal() -> Decimal
+  cambiar_a(nuevo: EstadoPedidoPuesto) -> None
   marcar_entregado() -> None
   marcar_listo() -> None
   marcar_recogido(repartidor_id: UUID, codigo_recojo: str) -> None
   rechazar(motivo: str) -> None
   recibir() -> None
+  subtotal() -> Decimal
+}
+class "Pendiente" as pedidos.estados.Pendiente {
+  nombre : str
+  anular(pp)
+  recibir(pp)
+}
+class "PendientePago" as pedidos.estados.PendientePago {
+  nombre : str
+  cancelar(pedido, motivo)
+  registrar_pago(pedido, pago)
+}
+class "Preparado" as pedidos.estados.Preparado {
+  nombre : str
+  marcar_en_camino(pedido)
+  marcar_entregado(pedido)
+}
+class "Rechazado" as pedidos.estados.Rechazado {
+  nombre : str
+}
+class "Recibido" as pedidos.estados.Recibido {
+  nombre : str
+  marcar_listo(pp)
+  rechazar(pp, motivo)
+}
+class "Recogido" as pedidos.estados.Recogido {
+  nombre : str
+  marcar_entregado(pp)
+}
+class "RepositorioEnMemoria" as pedidos.puertos.RepositorioEnMemoria {
+  buscar_por_id(id: UUID) -> Pedido
+  guardar(pedido: Pedido) -> None
 }
 class "RepositorioPedidos" as pedidos.puertos.RepositorioPedidos {
   {abstract}buscar_por_id(id: UUID) -> Pedido
-  {abstract}buscar_por_subpedido(subpedido_id: UUID) -> Pedido
   {abstract}guardar(pedido: Pedido) -> None
 }
 class "ServicioPedidos" as pedidos.servicio.ServicioPedidos {
-  cancelar_por_tiempo_agotado(pedido_id: UUID) -> None
-  confirmar_y_pagar(pedido_id: UUID, celular: str, codigo_aprobacion: str) -> Pedido
-  procesar_rechazo_puesto(subpedido_id: UUID, motivo: str) -> None
-  procesar_webhook_pago(pedido_id: UUID, pago: Pago) -> None
+  cancelar_por_tiempo_agotado(pedido: Pedido) -> None
+  confirmar_y_pagar(pedido: Pedido, medio: str, codigo_aprobacion: str) -> str
+  procesar_webhook_pago(pedido: Pedido, pago: Pago) -> None
+  rechazar_puesto(pedido: Pedido, comerciante: Comerciante, motivo: str) -> str
 }
-class "TipoEntrega" as pedidos.dominio.TipoEntrega {
+class "TarifaEnvio" as pedidos.tarifas.TarifaEnvio {
+  {abstract}calcular(subtotal: Decimal, distrito: str | None) -> Decimal
+}
+class "TarifaPorZona" as pedidos.tarifas.TarifaPorZona {
+  calcular(subtotal, distrito)
+}
+class "TarifaRecojo" as pedidos.tarifas.TarifaRecojo {
+  calcular(subtotal, distrito)
+}
+class "TipoEntrega" as pedidos.pedido.TipoEntrega {
   name
 }
-pedidos.dominio.Pedido --> pedidos.dominio.Cliente : cliente
-pedidos.dominio.Pedido --> pedidos.dominio.EstadoPedido : estado
-pedidos.dominio.PedidoPuesto --> pedidos.dominio.EstadoPedidoPuesto : estado
-pedidos.dominio.Pedido --> pedidos.dominio.TipoEntrega : tipo_entrega
+pedidos.estados.Anulado --|> pedidos.estados.EstadoPedidoPuesto
+pedidos.estados.Cancelado --|> pedidos.estados.EstadoPedido
+pedidos.estados.Creado --|> pedidos.estados.EstadoPedido
+pedidos.estados.EnCamino --|> pedidos.estados.EstadoPedido
+pedidos.estados.Entregado --|> pedidos.estados.EstadoPedido
+pedidos.estados.EntregadoPuesto --|> pedidos.estados.EstadoPedidoPuesto
+pedidos.estados.Listo --|> pedidos.estados.EstadoPedidoPuesto
+pedidos.estados.Pagado --|> pedidos.estados.EstadoPedido
+pedidos.estados.Pendiente --|> pedidos.estados.EstadoPedidoPuesto
+pedidos.estados.PendientePago --|> pedidos.estados.EstadoPedido
+pedidos.estados.Preparado --|> pedidos.estados.EstadoPedido
+pedidos.estados.Rechazado --|> pedidos.estados.EstadoPedidoPuesto
+pedidos.estados.Recibido --|> pedidos.estados.EstadoPedidoPuesto
+pedidos.estados.Recogido --|> pedidos.estados.EstadoPedidoPuesto
+pedidos.pedido.LineaPedido --|> pedidos.pedido.ItemPedido
+pedidos.pedido.Pedido --|> pedidos.pedido.ItemPedido
+pedidos.pedido.PedidoPuesto --|> pedidos.pedido.ItemPedido
+pedidos.puertos.RepositorioEnMemoria --|> pedidos.puertos.RepositorioPedidos
+pedidos.tarifas.TarifaPorZona --|> pedidos.tarifas.TarifaEnvio
+pedidos.tarifas.TarifaRecojo --|> pedidos.tarifas.TarifaEnvio
+pedidos.pedido.PedidoPuesto --> pedidos.pedido.LineaPedido : lineas
+pedidos.pedido.Pedido --> pedidos.pedido.PedidoPuesto : subpedidos
+pedidos.pedido.TipoEntrega --* pedidos.pedido.Pedido : tipo_entrega
+pedidos.pedido.Cliente --o pedidos.pedido.Pedido : cliente
 @enduml

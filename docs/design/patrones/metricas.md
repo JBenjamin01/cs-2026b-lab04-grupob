@@ -28,7 +28,7 @@ radon raw -s <archivos>                    # SLOC
 
 | Medida | Antes | Después |
 |--------|-------|---------|
-| Líneas de código (SLOC) | 182 | 600 |
+| Líneas de código (SLOC) | 182 | 596 |
 | Archivos | 1 | 13 |
 | Clases | 6 | 55 |
 | Métodos a modificar para un medio de pago nuevo | 2 (`confirmar_y_pagar`, `rechazar_puesto`) | 0 (se registra en `arranque.py`) |
@@ -36,7 +36,7 @@ radon raw -s <archivos>                    # SLOC
 | Métodos a modificar para un interesado nuevo en el pago | 1 (`confirmar_y_pagar`) | 0 (se suscribe) |
 | Pruebas | 26 casos de caracterización | 26 casos × 2 versiones + 19 de patrones + 11 de la máquina de estados |
 
-De las 600 líneas, unas 75 cubren funciones que la versión antes no tenía: el ciclo completo del
+De las 596 líneas, unas 75 cubren funciones que la versión antes no tenía: el ciclo completo del
 pedido hasta ENTREGADO (Lab 05), el webhook idempotente, la cancelación por tiempo agotado, el
 repositorio y los adaptadores en memoria. Aun descontándolas, el código casi se triplica.
 
@@ -44,7 +44,7 @@ repositorio y los adaptadores en memoria. Aun descontándolas, el código casi s
 
 El método principal pasó de complejidad 29 a 2 y el promedio de 6,07 a 1,63; ningún método supera
 5, y agregar un medio de pago, una tarifa, un proveedor de IA o un interesado en el pago ya no exige
-modificar el servicio. A cambio, el código pasó de 182 a 600 líneas y de 1 a 13 archivos, y un
+modificar el servicio. A cambio, el código pasó de 182 a 596 líneas y de 1 a 13 archivos, y un
 developer nuevo debe conocer siete patrones para seguir el flujo. Para San Camilo en Línea el cambio
 se justifica porque las variaciones **ya están anunciadas**: Plin (R-05), más zonas de delivery y un
 proveedor de IA que puede cambiar. Si el MVP solo cobrara con Yape, sin delivery y sin IA, la versión
@@ -68,3 +68,21 @@ El refactor además corrigió dos errores reales que la versión antes conserva:
 | Command para los cobros | Los reintentos son síncronos y cortos; una cola de comandos solo se justificaría con pagos diferidos. |
 | Template Method para los reintentos | Obligaría a heredar de una clase base; el Decorator los agrega por composición y sirve para cualquier pasarela. |
 | Un LLM «juez» para validar la IA | Duplica costo y latencia por cada nombre; reglas deterministas bastan. |
+
+## 5. Verificación del diagrama con pyreverse (E7)
+
+```bash
+cd src
+pyreverse -o puml -p pedidos --ignore=antes,externos.py pedidos
+pyreverse -o puml -p sancamilo --ignore=antes,externos.py comun catalogo pagos notificaciones pedidos reparto arranque
+```
+
+| Diferencia entre `clases.puml` y el código | Causa | Acción |
+|--------------------------------------------|-------|--------|
+| El diagrama de paquetes mostraba `pedidos.pedido → catalogo.modelos` y `pedidos.servicio → pagos.pasarelas`. | Al reescribir el código se importaron módulos internos de otros paquetes, lo que ADR-001 prohíbe. | **Corregir el código:** se importa la interfaz pública de cada paquete (`from pagos import ...`). |
+| Las composiciones `Pedido *-- PedidoPuesto` y `PedidoPuesto *-- LineaPedido` aparecen como asociaciones (`subpedidos`, `lineas`). | pyreverse no deduce composición desde una lista. | Limitación conocida (Lab 05); el diseño se mantiene. |
+| No aparece la asociación del contexto con su estado (`_estado`). | pyreverse oculta los atributos privados por defecto. | Documentar; con `-f ALL` aparece. |
+| Los 14 estados concretos aparecen como subclases. | Es la estructura real del patrón State. | `clases.puml` muestra solo las clases abstractas y remite a `patrones/state.puml`. |
+
+Resultado: no hay ciclos, y `pedidos` ya no depende de `notificaciones` ni de `reparto`. Desde el
+Observer, esos módulos escuchan eventos y se conectan en `arranque.py`.

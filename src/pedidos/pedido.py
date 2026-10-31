@@ -14,9 +14,9 @@ from enum import Enum
 from typing import Iterator
 from uuid import UUID, uuid4
 
-from catalogo.modelos import Comerciante, Producto
+from catalogo import Comerciante, Producto
 from comun.excepciones import ReglaNegocioError
-from pagos.modelos import Pago
+from pagos import Pago
 from pedidos.estados import Creado, EstadoPedido, EstadoPedidoPuesto, Pendiente
 
 

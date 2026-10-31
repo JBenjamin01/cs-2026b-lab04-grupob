@@ -1,12 +1,18 @@
 @startuml packages_sancamilo
-skinparam dpi 130
+skinparam dpi 120
 skinparam defaultFontName Arial
 set namespaceSeparator none
+package "arranque" as arranque {
+}
 package "catalogo" as catalogo {
+}
+package "catalogo.ia" as catalogo.ia {
 }
 package "catalogo.modelos" as catalogo.modelos {
 }
 package "comun" as comun {
+}
+package "comun.eventos" as comun.eventos {
 }
 package "comun.excepciones" as comun.excepciones {
 }
@@ -14,35 +20,68 @@ package "notificaciones" as notificaciones {
 }
 package "notificaciones.puertos" as notificaciones.puertos {
 }
+package "notificaciones.suscriptores" as notificaciones.suscriptores {
+}
 package "pagos" as pagos {
 }
 package "pagos.modelos" as pagos.modelos {
 }
+package "pagos.pasarelas" as pagos.pasarelas {
+}
 package "pedidos" as pedidos {
 }
-package "pedidos.dominio" as pedidos.dominio {
+package "pedidos.estados" as pedidos.estados {
+}
+package "pedidos.pedido" as pedidos.pedido {
 }
 package "pedidos.puertos" as pedidos.puertos {
 }
 package "pedidos.servicio" as pedidos.servicio {
 }
+package "pedidos.tarifas" as pedidos.tarifas {
+}
 package "reparto" as reparto {
 }
 package "reparto.modelos" as reparto.modelos {
 }
+package "reparto.suscriptores" as reparto.suscriptores {
+}
+arranque --> catalogo
+arranque --> comun.eventos
+arranque --> notificaciones
+arranque --> pagos
+arranque --> pedidos
+arranque --> reparto
+catalogo --> catalogo.ia
 catalogo --> catalogo.modelos
 catalogo.modelos --> comun.excepciones
 notificaciones --> notificaciones.puertos
+notificaciones --> notificaciones.suscriptores
+notificaciones.suscriptores --> comun.eventos
+notificaciones.suscriptores --> notificaciones.puertos
 pagos --> pagos.modelos
-pedidos --> pedidos.dominio
+pagos --> pagos.pasarelas
+pagos.pasarelas --> pagos.modelos
+pedidos --> pedidos.pedido
 pedidos --> pedidos.servicio
-pedidos.dominio --> catalogo
-pedidos.dominio --> comun.excepciones
-pedidos.dominio --> pagos
-pedidos.puertos --> pedidos.dominio
-pedidos.servicio --> notificaciones
+pedidos --> pedidos.tarifas
+pedidos.estados --> comun.excepciones
+pedidos.pedido --> catalogo
+pedidos.pedido --> comun.excepciones
+pedidos.pedido --> pagos
+pedidos.pedido --> pedidos.estados
+pedidos.puertos --> pedidos.pedido
+pedidos.servicio --> catalogo
+pedidos.servicio --> comun.eventos
 pedidos.servicio --> pagos
-pedidos.servicio --> pedidos.dominio
+pedidos.servicio --> pedidos.pedido
 pedidos.servicio --> pedidos.puertos
+pedidos.servicio --> pedidos.tarifas
+reparto --> reparto.modelos
+reparto --> reparto.suscriptores
 reparto.modelos --> pedidos
+reparto.suscriptores --> comun.eventos
+pedidos.estados ..> catalogo.modelos
+pedidos.estados ..> pagos.modelos
+pedidos.estados ..> pedidos.pedido
 @enduml

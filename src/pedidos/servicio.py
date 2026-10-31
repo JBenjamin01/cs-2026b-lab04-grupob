@@ -8,10 +8,9 @@ Ya no contiene if/elif por medio de pago, por tarifa ni por estado, ni arma los 
 """
 from __future__ import annotations
 
-from pagos.modelos import EstadoPago, Pago
-from pagos.pasarelas import FabricaPasarelas
+from catalogo import Comerciante
 from comun.eventos import PublicadorEventos
-from catalogo.modelos import Comerciante
+from pagos import EstadoPago, FabricaPasarelas, Pago
 from pedidos.pedido import Pedido, a_soles
 from pedidos.puertos import RepositorioEnMemoria, RepositorioPedidos
 from pedidos.tarifas import TarifaEnvio

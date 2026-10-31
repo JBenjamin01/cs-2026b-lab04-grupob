@@ -8,16 +8,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from catalogo.ia import ClaudeAdapter, ConCache, LocalAdapter, NormalizadorNombres, cadena_guardrails
+from catalogo import ClaudeAdapter, ConCache, LocalAdapter, NormalizadorNombres, cadena_guardrails
 from comun.eventos import PublicadorEventos
-from notificaciones.puertos import BandejaMensajes
-from notificaciones.suscriptores import NotificadorCliente, NotificadorComerciantes
-from pagos.pasarelas import FabricaPasarelas, PlinAdapter, YapeAdapter
+from notificaciones import BandejaMensajes, NotificadorCliente, NotificadorComerciantes
+from pagos import FabricaPasarelas, PlinAdapter, YapeAdapter
+from pedidos import Cliente, Pedido, ServicioPedidos, tarifas_por_defecto
 from pedidos.externos import ClienteClaudeSimulado, ModeloLocalSimulado, PlinClient, YapeSDK
-from pedidos.pedido import Cliente, Pedido
-from pedidos.servicio import ServicioPedidos
-from pedidos.tarifas import tarifas_por_defecto
-from reparto.suscriptores import AsignadorReparto
+from reparto import AsignadorReparto
 
 __all__ = ["Aplicacion", "Cliente", "Pedido", "crear_normalizador", "crear_servicio_pedidos"]
 

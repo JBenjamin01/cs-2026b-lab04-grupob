@@ -1,0 +1,48 @@
+@startuml observer-avisos
+' Lab 07 (E4): Observer — avisos a comerciantes, cliente y reparto — src/comun/eventos.py
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam dpi 130
+skinparam classBackgroundColor #EEF2F8
+skinparam classBorderColor #1A3A5C
+skinparam noteBackgroundColor #FFF8E1
+skinparam noteBorderColor #F9A825
+hide empty members
+title Avisos al pagar: Observer
+
+class ServicioPedidos <<publica>> {
+  +confirmar_y_pagar(...)
+  +rechazar_puesto(...)
+}
+class PublicadorEventos <<Subject>> {
+  -suscriptores: dict[str, list[Suscriptor]]
+  +suscribir(evento, suscriptor)
+  +publicar(evento, datos: dict)
+}
+interface Suscriptor <<Observer>> {
+  +actualizar(evento, datos: dict)
+}
+package notificaciones {
+  class NotificadorComerciantes
+  class NotificadorCliente
+  interface NotificadorMensajeria <<puerto>>
+}
+package reparto {
+  class AsignadorReparto
+}
+
+ServicioPedidos --> PublicadorEventos : publica "pedido_pagado"\ny "subpedido_rechazado"
+PublicadorEventos o--> "0..*" Suscriptor : notifica
+Suscriptor <|.. NotificadorComerciantes
+Suscriptor <|.. NotificadorCliente
+Suscriptor <|.. AsignadorReparto
+NotificadorComerciantes ..> NotificadorMensajeria
+NotificadorCliente ..> NotificadorMensajeria
+
+note right of PublicadorEventos
+  Vive en comun: pedidos publica y los demás escuchan
+  con datos neutrales (dict), sin depender entre sí (ADR-004).
+  Un interesado nuevo (p. ej., auditoría) solo se suscribe.
+end note
+@enduml
