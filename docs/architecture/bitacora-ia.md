@@ -72,3 +72,48 @@ Perfecto, sigamos con E5
 
 **Interacción 10 — Script de despliegue (E6):**
 Continuemos con el E6
+---
+
+# Laboratorio 08 — Diseño de la arquitectura con ADD (San Camilo en Línea 2.0)
+
+Regla de oro: **la IA propone, el equipo decide con evidencia.** Ninguna táctica se adoptó sin un
+escenario prioritario, evidencia cuantitativa (simulación, prototipo o fitness function) y un ADR.
+No se ingresaron datos personales, credenciales ni claves en los prompts: los celulares y montos
+de las pruebas son ficticios y los proveedores están simulados.
+
+| # | Fecha | Herramienta | Prompt (resumen) | Qué propuso la IA | Verificación del equipo | Decisión |
+|---|-------|-------------|------------------|-------------------|-------------------------|----------|
+| 11 | 27/10 | Claude | Prompt IA 1: escenarios de seis partes con (importancia, dificultad) para los 3 mercados | 11 escenarios; QA-04 como (H,H) «porque la carga se duplica», QA-05 como (M,L) «basta un WHERE» y uno de «10 000 usuarios concurrentes» | Utilización con 3 mercados: 20 req/s × 0,11 s / 5 workers = 0,44. Un solo reporte sin WHERE expone todo. Los 3 mercados suman unos 400 clientes en hora pico | **Corregida:** QA-04 (H,M), QA-05 (H,M); se descarta el de 10 000 usuarios; 9 escenarios en el árbol |
+| 12 | 27/10 | Claude | Prompt IA 2 (iteración 1): tácticas para QA-07 y QA-08 | Un despliegue por mercado, `if/elif` por mercado, motor de reglas genérico, reglas como datos | Se prototipó el `if/elif` en una rama descartada: Altiplano costó 54 líneas en 3 archivos, Río Seco 11 más; 10 condicionales por mercado y 2 pruebas del Lab 07 rotas | **Aceptada** «reglas como datos» (ADR-006); las otras 3, rechazadas |
+| 13 | 28/10 | Claude | Prompt IA 2 (iteración 2): multitenencia para QA-05 | Una BD por mercado, una librería de multitenencia con un esquema por mercado, o `mercado_id` + RLS | El esquema por mercado choca con ADR-002 (un esquema por módulo: serían 18). Se midió en PostgreSQL 16: sin RLS, un reporte sin filtro ve 15 028 a 23 971 filas ajenas; con RLS, 0 | **Aceptada** `mercado_id` + RLS + claim (ADR-007); esquemas por mercado, rechazados |
+| 14 | 29/10 | Claude | Prompt IA 2 (iteración 3): tácticas para QA-09 | Primero «subir a 10 reintentos» y «basta con guardar el cobro pendiente» | Más reintentos bloquean al cliente y multiplican las llamadas al proveedor caído (132 con solo 3 reintentos). Una outbox sin circuito sigue llamando en cada pedido nuevo | **Corregida:** reintentos + circuit breaker + outbox en PostgreSQL (ADR-008) |
+| 15 | 29/10 | Claude | Adaptar `disponibilidad.py` del docente a un sábado con 3 mercados | Simulación con un solo generador aleatorio para llegadas y fallas | Cada táctica recibía una cantidad distinta de pedidos (1 252, 1 271 y 1 280): la comparación no era justa | **Corregida:** dos generadores; las 3 tácticas reciben los mismos 1 310 pedidos |
+| 16 | 30/10 | Claude | Escribir las fitness functions estructurales (`.importlinter`) | Contrato FF-02 que prohíbe `pagos.adaptadores` | Al ejecutarlo sobre el código del Lab 07, el contrato prohibiendo `pagos.pasarelas` quedó BROKEN: `pagos/__init__.py` reexportaba los adaptadores. Y un contrato sobre un módulo inexistente pasa en silencio | **Corregida:** adaptadores en `pagos/adaptadores.py` y prueba de que el módulo exista |
+| 17 | 30/10 | Claude | Prompt IA 3: evaluador ATAM adversario | 8 riesgos, 3 puntos de sensibilidad y 3 trade-offs; además: «RLS degrada el rendimiento del catálogo» y «con el circuito abierto se pierden pagos» | Medición: 0,19 ms sin RLS y 0,21 ms con RLS + índice. `test_con_el_circuito_abierto_..._nada_se_pierde` y FF-07 en verde | **Falsos positivos refutados** con evidencia; el resto, en `atam-lite.md` |
+| 18 | 30/10 | Claude | Redactar ADR-006 a 008, iteraciones, README e informe | Borradores | Cifras recalculadas con las simulaciones, pytest y PostgreSQL; revisión de ambos integrantes | Aceptada con correcciones |
+
+## Anexo Lab 08: prompts
+
+### Prompt IA 1 — Escenarios para el árbol de utilidad (interacción 11)
+
+```
+Actúa como arquitecto de software. Contexto: [pegar drivers.md, ADR-001 y el nuevo contexto:
+se suman los mercados Altiplano y Río Seco, cada uno con sus reglas y comerciantes; 1 mes;
+2 developers Django; un VPS]. Tarea: propón escenarios de calidad de seis partes (fuente,
+estímulo, entorno, artefacto, respuesta, medida) para rendimiento, disponibilidad, seguridad
+y modificabilidad. Para cada uno sugiere (importancia, dificultad) con H/M/L y justifícalo.
+Restricciones: medidas numéricas; no propongas soluciones todavía.
+```
+
+### Prompt IA 2 — Tácticas candidatas (interacciones 12 a 14)
+
+```
+Para el escenario [QA-07 | QA-05 | QA-09] [pegar], propón 4 tácticas candidatas del catálogo de
+Bass et al. Para cada una indica: qué mejora, qué empeora, costo aproximado y complejidad para
+un equipo de 2 developers con Django en 1 mes. Respeta ADR-001 (monolito modular en un VPS) y
+ADR-002 (un esquema por módulo); si recomiendas cambiar el estilo, justifícalo con números.
+```
+
+### Prompt IA 3 — Evaluador adversario (interacción 17)
+
+Ver [`atam-lite.md`](atam-lite.md), sección 1.
