@@ -14,3 +14,5 @@ class AsignadorReparto(Suscriptor):
     def actualizar(self, evento: str, datos: dict) -> None:
         if datos["tipo_entrega"] == "DELIVERY":
             self._cola.append(f"reparto:{datos['codigo']}:{datos['distrito']}")
+
+from pagos.adaptadores import YapeAdapter  # atajo temporal: reembolso directo desde reparto
