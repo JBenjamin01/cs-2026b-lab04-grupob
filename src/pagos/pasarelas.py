@@ -1,7 +1,6 @@
-"""Pagos con patrones (Lab 07): ADAPTER + STRATEGY + DECORATOR + FACTORY (registro).
+"""Pagos con patrones (Lab 07): STRATEGY + DECORATOR + FACTORY (registro).
 
-- YapeAdapter y PlinAdapter traducen cada SDK a la interfaz PasarelaPago (Adapter).
-- Cada adaptador es una estrategia intercambiable de cobro (Strategy).
+- Los adaptadores de cada SDK viven en pagos/adaptadores.py (Lab 08, FF-02): solo arranque.py los conoce.
 - ConReintentos agrega reintentos ante TimeoutError sin modificar los adaptadores (Decorator).
 - FabricaPasarelas crea la estrategia por nombre; un medio nuevo solo se registra (Factory).
 
@@ -17,41 +16,6 @@ from uuid import UUID
 
 from pagos.modelos import EstadoPago, Pago, PasarelaPago
 from pagos.resiliencia import ConCircuitBreaker
-
-
-# ---------- ADAPTER: traduce cada SDK a la interfaz PasarelaPago ----------
-class YapeAdapter(PasarelaPago):
-    """El SDK cobra en soles y responde con un diccionario."""
-
-    def __init__(self, sdk):
-        self._sdk = sdk
-
-    def iniciar_cobro(self, pedido_id: UUID, monto: Decimal, celular: str, codigo_aprobacion: str) -> Pago:
-        r = self._sdk.cobrar_yape(celular, monto, codigo_aprobacion)
-        estado = EstadoPago.CONFIRMADO if r["estado"] == "APROBADO" else EstadoPago.RECHAZADO
-        return Pago(pedido_id, monto, r["id_transaccion"], estado)
-
-    def reembolsar(self, referencia_proveedor: str, monto: Decimal) -> None:
-        self._sdk.devolver(referencia_proveedor, monto)
-
-
-class PlinAdapter(PasarelaPago):
-    """El cliente cobra en céntimos y responde con (código HTTP, id de transacción)."""
-
-    def __init__(self, cliente):
-        self._cliente = cliente
-
-    def iniciar_cobro(self, pedido_id: UUID, monto: Decimal, celular: str, codigo_aprobacion: str) -> Pago:
-        codigo, tx = self._cliente.charge(_a_centimos(monto), celular, codigo_aprobacion)
-        estado = EstadoPago.CONFIRMADO if codigo == 200 else EstadoPago.RECHAZADO
-        return Pago(pedido_id, monto, tx, estado)
-
-    def reembolsar(self, referencia_proveedor: str, monto: Decimal) -> None:
-        self._cliente.refund(referencia_proveedor, _a_centimos(monto))
-
-
-def _a_centimos(monto: Decimal) -> int:
-    return int(monto * 100)
 
 
 # ---------- DECORATOR: reintentos ante TimeoutError, sin tocar los adaptadores ----------

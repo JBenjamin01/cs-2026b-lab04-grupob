@@ -13,7 +13,8 @@ from catalogo import ClaudeAdapter, ConCache, LocalAdapter, NormalizadorNombres,
 from comun.eventos import PublicadorEventos
 from mercados import RepositorioMercados, RepositorioMercadosEnMemoria, cargar_datos_iniciales
 from notificaciones import BandejaMensajes, NotificadorCliente, NotificadorComerciantes
-from pagos import ColaPagosPendientes, ColaPagosPendientesEnMemoria, FabricaPasarelas, PlinAdapter, YapeAdapter
+from pagos import ColaPagosPendientes, ColaPagosPendientesEnMemoria, FabricaPasarelas
+from pagos.adaptadores import PlinAdapter, YapeAdapter   # el único import de adaptadores (FF-02)
 from pedidos import Cliente, Pedido, ServicioPedidos, tarifas_por_defecto
 from pedidos.externos import ClienteClaudeSimulado, ModeloLocalSimulado, PlinClient, YapeSDK
 from reparto import AsignadorReparto

@@ -63,5 +63,5 @@ horario invertido, código con espacios).
 
 | Escenario | Medida | Resultado |
 |-----------|--------|-----------|
-| QA-07 | 0 líneas de código y sin despliegue | **Cumple:** Río Seco funciona solo con datos (`test_cada_mercado_cobra_su_delivery`, `test_comision_de_cada_mercado`) |
+| QA-07 | 0 líneas de código y sin despliegue | **Cumple:** Río Seco y un cuarto mercado de prueba (FF-05) funcionan solo con datos |
 | QA-08 | Sin despliegue y sin afectar a otros mercados | **Cumple:** `test_cambiar_una_regla_no_afecta_a_otros_mercados` |
