@@ -1,4 +1,6 @@
-# San Camilo en Línea — Laboratorios 04 a 07: arquitectura, diseño UML, C4 y patrones
+# San Camilo en Línea — Laboratorios 04 a 08: arquitectura, diseño UML, C4, patrones y ADD
+
+[![fitness-functions](https://github.com/JBenjamin01/cs-2026b-lab04-grupob/actions/workflows/fitness.yml/badge.svg)](https://github.com/JBenjamin01/cs-2026b-lab04-grupob/actions/workflows/fitness.yml)
 
 Construcción de Software · EPIS-UNSA · 2026-B · Grupo B
 
@@ -110,6 +112,9 @@ Resultado de la [matriz de decisión](docs/architecture/matriz-decision.md):
 - [ADR-003: PWA offline-first](docs/architecture/adr/003-estrategia-offline-pwa.md)
 - [ADR-004: Puertos con tipos neutrales, sin ciclos entre módulos](docs/architecture/adr/004-puertos-sin-ciclos.md) (Lab 05)
 - [ADR-005: Patrones de diseño en el flujo «confirmar y pagar» y en la IA](docs/architecture/adr/005-patrones-de-diseno.md) (Lab 07)
+- [ADR-006: Las reglas de cada mercado se guardan como datos](docs/architecture/adr/006-reglas-por-mercado-como-datos.md) (Lab 08)
+- [ADR-007: Aislamiento entre mercados con RLS](docs/architecture/adr/007-aislamiento-entre-mercados-con-rls.md) (Lab 08)
+- [ADR-008: Pagos resilientes con circuit breaker y outbox](docs/architecture/adr/008-pagos-resilientes-circuit-breaker-y-outbox.md) (Lab 08)
 
 ## Reflexión sobre el uso de la IA
 
@@ -223,7 +228,7 @@ Decisión registrada en [ADR-005](docs/architecture/adr/005-patrones-de-diseno.m
 | Olor en la versión antes | Patrón | Dónde | Prueba que lo demuestra |
 |--------------------------|--------|-------|-------------------------|
 | `if/elif` por medio de pago | Strategy + Factory | `pagos/pasarelas.py` | `test_open_closed_nuevo_medio_sin_modificar_el_servicio` |
-| El servicio conoce soles/céntimos y dict/tupla de cada SDK | Adapter | `pagos/pasarelas.py` | `test_adapters_traducen_soles_y_centimos` |
+| El servicio conoce soles/céntimos y dict/tupla de cada SDK | Adapter | `pagos/adaptadores.py` (Lab 08) | `test_adapters_traducen_soles_y_centimos` |
 | Condicionales sobre el estado del pedido y del subpedido | State | `pedidos/estados.py` | `test_state_impide_transiciones_invalidas_del_subpedido` |
 | Reintentos duplicados para Yape y Plin | Decorator | `ConReintentos` | `test_decorator_reintentos_solo_ante_timeout` |
 | Avisos a comerciantes, cliente y reparto armados a mano | Observer | `comun/eventos.py` | `test_observer_nuevo_suscriptor_sin_tocar_el_servicio` |
@@ -266,7 +271,7 @@ recibían montos distintos. Detalle en [metricas.md](docs/design/patrones/metric
 
 ```bash
 pip install pytest radon pylint
-python -m pytest -q tests                                  # 81 passed, 1 xfailed
+python -m pytest -q tests                                  # Lab 08: 112 passed, 1 skipped, 1 xfailed
 radon cc -s -a src/pedidos/antes/servicio.py               # antes
 radon cc -s -a src --exclude "src/pedidos/antes/*"         # después
 ```
@@ -275,18 +280,94 @@ No se necesita clave de API: los SDK de pagos y los LLM están simulados en `src
 La GitHub Action [`calidad.yml`](.github/workflows/calidad.yml) ejecuta las pruebas y falla si algún
 bloque de la versión con patrones supera complejidad 10.
 
+## Diseño de la arquitectura (Lab 08)
+
+**Escenario de crecimiento (caso 7):** se suman los mercados **Altiplano** y **Río Seco**, cada uno
+con sus reglas y comerciantes. Con el método **ADD 3.0** se diseñó la arquitectura en tres
+iteraciones guiadas por el árbol de utilidad, cada una con evidencia cuantitativa, un ADR y
+fitness functions que corren en cada Pull Request. **El estilo de ADR-001 se mantiene**: la
+evidencia mostró que un monolito modular en un VPS soporta los 3 mercados.
+
+| Integrante | Rol en el Lab 08 | Entregables |
+|------------|------------------|-------------|
+| Jhonatan Benjamin Mamani Céspedes | Árbol de utilidad, iteración 1 de ADD, evaluación ATAM-lite cruzada; README y entrega | E1, E2, E3, E8 |
+| Jafet Martin Llave Aguilar | Iteraciones 2 y 3, fitness functions en CI, ADR y C4, matriz de riesgos y bitácora | E4, E5, E6, E7 |
+
+### Árbol de utilidad (E1)
+
+![Árbol de utilidad](docs/architecture/utilidad/arbol.png)
+
+Escenarios de seis partes y calificaciones corregidas: [escenarios.md](docs/architecture/utilidad/escenarios.md).
+
+### Iteraciones de ADD
+
+| Iteración | Escenario | Táctica | Evidencia | ¿Cumple? |
+|-----------|-----------|---------|-----------|----------|
+| [1](docs/architecture/add/iteracion-1.md) | QA-07 (H,H): mercado nuevo con 0 líneas de código y sin desplegar; QA-08 | Reglas por mercado como datos (diferir el enlace) | Prototipo de la alternativa `if/elif`: 10 condicionales y 54 + 11 líneas para 2 mercados, frente a 0 | Sí |
+| [2](docs/architecture/add/iteracion-2.md) | QA-05 (H,M): 0 filas de otro mercado | `mercado_id` + Row-Level Security + claim en el token + índice | PostgreSQL 16: 15 028 a 23 971 filas ajenas sin RLS, 0 con RLS; p95 del catálogo de 209 ms a 20 req/s (QA-04) | Sí |
+| [3](docs/architecture/add/iteracion-3.md) | QA-09 (H,H): proveedor de pagos caído 10 min → 0 pedidos perdidos | Reintentos + circuit breaker (Decorator) + outbox en PostgreSQL | Monte Carlo de un sábado: de 44 a 0 pedidos perdidos y de 132 a 36 llamadas al proveedor caído | Sí, hasta 15 min de caída |
+
+Decisiones: [ADR-006](docs/architecture/adr/006-reglas-por-mercado-como-datos.md) ·
+[ADR-007](docs/architecture/adr/007-aislamiento-entre-mercados-con-rls.md) ·
+[ADR-008](docs/architecture/adr/008-pagos-resilientes-circuit-breaker-y-outbox.md).
+Vista de contenedores actualizada, con el escenario que atiende cada elemento:
+[workspace.dsl](docs/architecture/c4/workspace.dsl) · [PNG](docs/architecture/c4/img/contenedores-lab08.png).
+
+### Fitness functions (E5)
+
+| ID | Qué protege | Herramienta |
+|----|-------------|-------------|
+| FF-01 | Capas sin ciclos (ADR-001, ADR-004) | lint-imports |
+| FF-02 | Solo el arranque conoce los adaptadores de pago (ADR-005) | lint-imports + pytest |
+| FF-03 | 0 decisiones del código que dependan de qué mercado es (ADR-006) | pytest (AST) |
+| FF-04 | p95 del catálogo ≤ 2 s con 3 mercados (QA-04) | pytest + simulación |
+| FF-05 | Un mercado nuevo funciona solo con datos (QA-07) | pytest |
+| FF-06 | 0 filas de otro mercado y RLS en toda tabla con `mercado_id` (QA-05) | pytest + PostgreSQL 16 |
+| FF-07 y FF-08 | 0 pedidos perdidos ante la caída del proveedor; el circuito lo protege (QA-09) | pytest + Monte Carlo |
+| FF-09 | El modelo C4 es válido | structurizr validate |
+
+Se comprobó que fallan con tres violaciones reales: [violaciones.md](docs/architecture/fitness/violaciones.md).
+
+### Evaluación ATAM-lite y bitácora (E3 y E7)
+
+[atam-lite.md](docs/architecture/atam-lite.md): puntos de sensibilidad, trade-offs, 8 riesgos con
+su matriz de probabilidad e impacto, no riesgos y dos falsos positivos de la IA refutados con
+evidencia. Las interacciones con la IA están en [bitacora-ia.md](docs/architecture/bitacora-ia.md)
+(interacciones 11 a 18).
+
+### Cómo ejecutar
+
+```bash
+pip install pytest import-linter matplotlib "psycopg[binary]"
+PYTHONPATH=src lint-imports                       # FF-01 y FF-02: 2 kept, 0 broken
+python -m pytest -q tests                         # 112 passed, 1 skipped (FF-06 sin PostgreSQL), 1 xfailed
+python fitness/rendimiento.py                     # p95 del catálogo por carga y táctica
+python fitness/disponibilidad.py                  # pedidos perdidos y llamadas durante la caída
+python fitness/modificabilidad.py src             # condicionales por mercado: 0
+AISLAMIENTO_DSN="postgresql://..." python fitness/aislamiento.py   # solo con un PostgreSQL de PRUEBAS
+python docs/architecture/diagramas/graficos_lab08.py               # regenera los gráficos
+```
+
 ## Estructura del repositorio
 
 ```
 cs-2026b-lab04-grupob/
 ├── README.md
+├── .importlinter              # Lab 08 (E5): FF-01 y FF-02
+├── .github/workflows/         # calidad.yml (Lab 07) y fitness.yml (Lab 08, E5)
+├── db/rls.sql                 # Lab 08 (E4): Row-Level Security por mercado
+├── fitness/                   # Lab 08: simulaciones y prototipos de medición
 ├── docs/
-│   ├── architecture/          # Laboratorio 04 (+ ADR-004 del Lab 05 y ADR-005 del Lab 07)
-│   │   ├── drivers.md, matriz-decision.md, bitacora-ia.md
+│   ├── architecture/          # Laboratorio 04 (+ ADR-004 del Lab 05, ADR-005 del Lab 07 y Lab 08)
+│   │   ├── drivers.md, matriz-decision.md, bitacora-ia.md, atam-lite.md
+│   │   ├── utilidad/          # Lab 08 (E1): arbol.dot, arbol.png, escenarios.md
+│   │   ├── add/               # Lab 08 (E2, E4): iteracion-1 a 3, evidencia/, img/
+│   │   ├── fitness/           # Lab 08 (E5): violaciones.md
+│   │   ├── img/               # Lab 08 (E7): matriz de riesgos
 │   │   ├── anexos/            # respuestas completas de Gemini y ChatGPT
-│   │   ├── adr/               # 000-plantilla, 001 a 005
-│   │   ├── c4/                # Laboratorio 06: workspace.dsl, inventario.md
-│   │   └── diagramas/         # arquitectura.mmd, alternativa.puml, despliegue.py, img/
+│   │   ├── adr/               # 000-plantilla, 001 a 008
+│   │   ├── c4/                # Laboratorio 06 (actualizado en el Lab 08): workspace.dsl, img/
+│   │   └── diagramas/         # arquitectura.mmd, alternativa.puml, despliegue.py, graficos_lab08.py, img/
 │   └── design/                # Laboratorio 05
 │       ├── historia.md, clases.puml, secuencia-confirmar-pagar.puml
 │       ├── estados-pedidopuesto.mmd, actividades-consolidar-pedido.puml, paquetes.puml
@@ -297,7 +378,7 @@ cs-2026b-lab04-grupob/
 ├── src/
 │   ├── arranque.py            # Lab 07: raíz de composición (conecta los patrones)
 │   ├── pedidos/antes/         # Lab 07: versión ingenua, solo para comparar
+│   ├── mercados/              # Lab 08: reglas de cada mercado como datos
 │   └── comun, catalogo, pagos, notificaciones, pedidos, reparto
-├── tests/                     # caracterización (antes y después), patrones y máquina de estados
-└── .github/workflows/         # Lab 07 (reto): pruebas y complejidad en cada push
+└── tests/                     # caracterización, patrones, estados, mercados, disponibilidad y fitness
 ```
