@@ -38,4 +38,6 @@ class TarifaPorZona(TarifaEnvio):
 
 
 def tarifas_por_defecto() -> dict[str, TarifaEnvio]:
+    """Tarifas que se usan cuando el servicio se crea sin reglas de mercado (pruebas del Lab 07).
+    Desde el Lab 08, las zonas de cada mercado vienen de sus datos (ADR-006)."""
     return {"RECOJO_MERCADO": TarifaRecojo(), "DELIVERY": TarifaPorZona(ZONAS_AREQUIPA)}

@@ -105,8 +105,10 @@ class Pedido(ItemPedido):
     """Raíz del Composite y contexto de EstadoPedido."""
 
     def __init__(self, cliente: Cliente, tipo_entrega: str = "RECOJO_MERCADO",
-                 distrito: str | None = None, codigo: str | None = None):
+                 distrito: str | None = None, codigo: str | None = None,
+                 mercado: str = "SAN_CAMILO"):
         self.cliente = cliente
+        self.mercado = mercado  # Lab 08: código del mercado; sus reglas se leen como datos (ADR-006)
         self.tipo_entrega = TipoEntrega(tipo_entrega)
         self.distrito = distrito
         self.id: UUID = uuid4()
@@ -115,6 +117,7 @@ class Pedido(ItemPedido):
         self.costo_envio = Decimal("0")
         self.medio_pago: str | None = None
         self.pago: Pago | None = None
+        self.comision = Decimal("0")
         self.fecha_creacion = datetime.now()
         self._estado: EstadoPedido = Creado()
 

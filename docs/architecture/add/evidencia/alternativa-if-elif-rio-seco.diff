@@ -1,0 +1,46 @@
+diff --git a/src/pedidos/servicio.py b/src/pedidos/servicio.py
+index 81d69f6..a17921a 100644
+--- a/src/pedidos/servicio.py
++++ b/src/pedidos/servicio.py
+@@ -47,6 +47,8 @@ class ServicioPedidos:
+             minimo, medios = Decimal("15"), ("YAPE", "PLIN")
+         elif pedido.mercado == "ALTIPLANO":
+             minimo, medios = Decimal("20"), ("YAPE",)
++        elif pedido.mercado == "RIO_SECO":
++            minimo, medios = Decimal("50"), ("YAPE", "PLIN")
+         else:
+             raise ReglaNegocioError(f"Mercado no soportado: {pedido.mercado}")
+         if pedido.subtotal() < minimo:
+@@ -60,6 +62,8 @@ class ServicioPedidos:
+             porcentaje = Decimal("0.05")
+         elif pedido.mercado == "ALTIPLANO":
+             porcentaje = Decimal("0.04")
++        elif pedido.mercado == "RIO_SECO":
++            porcentaje = Decimal("0.03")
+         else:
+             raise ReglaNegocioError(f"Mercado no soportado: {pedido.mercado}")
+         return a_soles(pedido.subtotal() * porcentaje)
+diff --git a/src/pedidos/tarifas.py b/src/pedidos/tarifas.py
+index 59408fa..205c467 100644
+--- a/src/pedidos/tarifas.py
++++ b/src/pedidos/tarifas.py
+@@ -42,12 +42,19 @@ ZONAS_ALTIPLANO = {
+     "Mariano Melgar": Decimal("6"), "Cercado": Decimal("8"),
+ }
+ 
++ZONAS_RIO_SECO = {
++    "Cerro Colorado": Decimal("6"), "Cayma": Decimal("9"),
++    "Yanahuara": Decimal("9"), "Cercado": Decimal("12"),
++}
++
+ 
+ def tarifas_por_defecto(mercado: str = "SAN_CAMILO") -> dict[str, TarifaEnvio]:
+     if mercado == "SAN_CAMILO":
+         delivery = TarifaPorZona(ZONAS_AREQUIPA)
+     elif mercado == "ALTIPLANO":
+         delivery = TarifaPorZona(ZONAS_ALTIPLANO, Decimal("12"), Decimal("120"))
++    elif mercado == "RIO_SECO":
++        delivery = TarifaPorZona(ZONAS_RIO_SECO, Decimal("15"), Decimal("300"))
+     else:
+         raise ValueError(f"Mercado no soportado: {mercado}")
+     return {"RECOJO_MERCADO": TarifaRecojo(), "DELIVERY": delivery}
