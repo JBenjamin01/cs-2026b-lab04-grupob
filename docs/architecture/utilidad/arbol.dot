@@ -1,0 +1,36 @@
+// Lab 08 (E1): árbol de utilidad de San Camilo en Línea 2.0 (3 mercados).
+// Renderizar:  dot -Tpng arbol.dot -o arbol.png
+// Hojas: (importancia para el negocio, dificultad técnica) con H = alta, M = media, L = baja.
+digraph U {
+  graph [rankdir=LR, nodesep=0.10, ranksep=0.32, fontname="Arial", pad=0.15];
+  node  [shape=box, style="rounded,filled", fontname="Arial", fontsize=11, margin="0.12,0.06"];
+  edge  [color="#7F7F7F", arrowhead=none];
+
+  U [label="Utilidad\nSan Camilo en Línea 2.0\n(3 mercados)", fillcolor="#1A3A5C", fontcolor="white", color="#1A3A5C", fontsize=13];
+
+  node [fillcolor="#C8310E", fontcolor="white", color="#C8310E"];
+  R [label="Rendimiento"]; D [label="Disponibilidad"]; S [label="Seguridad"]; M [label="Modificabilidad"];
+
+  node [fillcolor="#F4CCC3", fontcolor="black", color="#C8310E"];
+  R1 [label="Catálogo en\nhora pico"];
+  D1 [label="Caída del proveedor\nde pagos"]; D2 [label="Caída de WhatsApp"]; D3 [label="Comerciante\nsin señal"];
+  S1 [label="Aislamiento entre\nmercados"]; S2 [label="Datos personales"];
+  M1 [label="Mercado nuevo"]; M2 [label="Regla de un\nmercado"]; M3 [label="Medio de pago\nnuevo"];
+
+  node [fillcolor="#F7F7F7", color="#9A9A9A", fontcolor="black", width=7.0, fontsize=10.5];
+  Q4  [label="(H,M) QA-04: 400 clientes de 3 mercados (20 req/s) el sábado a las 8:00 → p95 del catálogo ≤ 2 s"];
+  Q9  [label="(H,H) QA-09: el proveedor de pagos no responde 10 min en hora pico → 0 pedidos perdidos; cobro ≤ 15 min"];
+  Q3  [label="(M,L) QA-03: WhatsApp devuelve error → 0 avisos perdidos; entregado ≤ 15 min tras recuperarse (Lab 04)"];
+  Q2  [label="(M,L) QA-02: comerciante sin señal 30 min → 0 acciones perdidas; sincroniza en ≤ 60 s (Lab 04)"];
+  Q5  [label="(H,M) QA-05: un usuario del mercado Altiplano consulta pedidos o reportes → 0 filas de otros mercados"];
+  Q6  [label="(M,L) QA-06: celulares y direcciones de clientes cifrados en tránsito y en reposo (Ley 29733)"];
+  Q7  [label="(H,H) QA-07: incorporar un mercado con sus reglas → ≤ 1 día-persona, 0 líneas de código, sin desplegar"];
+  Q8  [label="(H,M) QA-08: el administrador de un mercado cambia una regla → vigente en ≤ 5 min, sin afectar a otros"];
+  Q10 [label="(M,L) QA-10: nuevo medio de pago → ≤ 2 días-persona (Factory del Lab 07)"];
+
+  U -> {R D S M};
+  R -> R1 -> Q4;
+  D -> D1 -> Q9; D -> D2 -> Q3; D -> D3 -> Q2;
+  S -> S1 -> Q5; S -> S2 -> Q6;
+  M -> M1 -> Q7; M -> M2 -> Q8; M -> M3 -> Q10;
+}

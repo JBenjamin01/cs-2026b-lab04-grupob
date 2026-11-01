@@ -10,6 +10,7 @@ from dataclasses import dataclass
 
 from catalogo import ClaudeAdapter, ConCache, LocalAdapter, NormalizadorNombres, cadena_guardrails
 from comun.eventos import PublicadorEventos
+from mercados import RepositorioMercados, RepositorioMercadosEnMemoria, cargar_datos_iniciales
 from notificaciones import BandejaMensajes, NotificadorCliente, NotificadorComerciantes
 from pagos import FabricaPasarelas, PlinAdapter, YapeAdapter
 from pedidos import Cliente, Pedido, ServicioPedidos, tarifas_por_defecto
@@ -25,7 +26,7 @@ class Aplicacion:
     eventos: list
 
 
-def crear_servicio_pedidos(yape=None, plin=None) -> Aplicacion:
+def crear_servicio_pedidos(yape=None, plin=None, mercados: RepositorioMercados | None = None) -> Aplicacion:
     yape, plin = yape or YapeSDK(), plin or PlinClient()
     fabrica = FabricaPasarelas()
     fabrica.registrar("YAPE", lambda: YapeAdapter(yape))
@@ -39,7 +40,8 @@ def crear_servicio_pedidos(yape=None, plin=None) -> Aplicacion:
     publicador.suscribir("pedido_pagado", AsignadorReparto(eventos))
     publicador.suscribir("subpedido_rechazado", NotificadorCliente(mensajeria))
 
-    return Aplicacion(ServicioPedidos(fabrica, publicador, tarifas_por_defecto()), eventos)
+    mercados = mercados or RepositorioMercadosEnMemoria(cargar_datos_iniciales())  # Lab 08 (ADR-006)
+    return Aplicacion(ServicioPedidos(fabrica, publicador, tarifas_por_defecto(), mercados=mercados), eventos)
 
 
 def crear_normalizador(catalogo: list[str], claude=None, local=None) -> NormalizadorNombres:

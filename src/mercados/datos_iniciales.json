@@ -1,0 +1,38 @@
+[
+  {
+    "codigo": "SAN_CAMILO",
+    "nombre": "Mercado San Camilo",
+    "pedido_minimo": "0",
+    "comision": "0.05",
+    "medios_pago": ["YAPE", "PLIN"],
+    "zonas_delivery": {"Cercado": "5", "Selva Alegre": "5", "Yanahuara": "8", "Cayma": "8", "Miraflores": "8"},
+    "tarifa_por_defecto": "12",
+    "delivery_gratis_desde": "150",
+    "abre": "06:00",
+    "cierra": "17:00"
+  },
+  {
+    "codigo": "ALTIPLANO",
+    "nombre": "Mercado Altiplano",
+    "pedido_minimo": "20",
+    "comision": "0.04",
+    "medios_pago": ["YAPE"],
+    "zonas_delivery": {"Alto Selva Alegre": "5", "Miraflores": "6", "Mariano Melgar": "6", "Cercado": "8"},
+    "tarifa_por_defecto": "12",
+    "delivery_gratis_desde": "120",
+    "abre": "05:00",
+    "cierra": "14:00"
+  },
+  {
+    "codigo": "RIO_SECO",
+    "nombre": "Mercado Río Seco",
+    "pedido_minimo": "50",
+    "comision": "0.03",
+    "medios_pago": ["YAPE", "PLIN"],
+    "zonas_delivery": {"Cerro Colorado": "6", "Cayma": "9", "Yanahuara": "9", "Cercado": "12"},
+    "tarifa_por_defecto": "15",
+    "delivery_gratis_desde": "300",
+    "abre": "03:00",
+    "cierra": "12:00"
+  }
+]
