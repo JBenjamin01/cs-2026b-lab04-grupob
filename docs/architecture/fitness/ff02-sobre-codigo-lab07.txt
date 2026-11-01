@@ -1,0 +1,33 @@
+Contracts
+---------
+
+Analyzed 29 files, 43 dependencies.
+-----------------------------------
+
+FF-01 Capas del monolito modular sin ciclos (ADR-001, ADR-004) KEPT
+FF-02 Solo el arranque conoce los adaptadores de pago (ADR-005) BROKEN
+
+Contracts: 1 kept, 1 broken.
+
+
+----------------
+Broken contracts
+----------------
+
+FF-02 Solo el arranque conoce los adaptadores de pago (ADR-005)
+---------------------------------------------------------------
+
+pedidos is not allowed to import pagos.pasarelas:
+
+-   pedidos.pedido -> pagos (l.19)
+    pagos -> pagos.pasarelas (l.3)
+
+
+reparto is not allowed to import pagos.pasarelas:
+
+-   reparto.modelos -> pedidos (l.7)
+    pedidos -> pedidos.pedido (l.2)
+    pedidos.pedido -> pagos (l.19)
+    pagos -> pagos.pasarelas (l.3)
+
+

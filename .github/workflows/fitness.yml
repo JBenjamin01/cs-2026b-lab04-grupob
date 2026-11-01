@@ -1,0 +1,50 @@
+# Lab 08 (E5): fitness functions de la arquitectura en cada Pull Request (y en cada push a main,
+# para que la insignia del README muestre el estado de main).
+# Si una fitness function falla, el Pull Request no se debe fusionar: la arquitectura se degradó.
+name: fitness-functions
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  arquitectura:
+    runs-on: ubuntu-latest
+    services:
+      postgres:                       # base de PRUEBAS para FF-06 (aislamiento con RLS)
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      AISLAMIENTO_DSN: postgresql://postgres:postgres@localhost:5432/postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Instalar dependencias
+        run: pip install import-linter pytest "psycopg[binary]"
+      - name: FF-01 y FF-02 (estructura, import-linter)
+        run: PYTHONPATH=src lint-imports
+      - name: FF-02 a FF-08 (pytest)
+        run: python -m pytest -v tests/test_fitness.py
+      - name: Resto de las pruebas
+        run: python -m pytest -q tests
+
+  modelo-c4:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: FF-09 El modelo C4 es válido (structurizr validate)
+        run: |
+          curl -sSL -o cli.zip https://github.com/structurizr/cli/releases/download/v2024.12.07/structurizr-cli.zip
+          unzip -q cli.zip -d structurizr
+          bash structurizr/structurizr.sh validate -workspace docs/architecture/c4/workspace.dsl

@@ -1,0 +1,32 @@
+# Lab 08 (E5): fitness functions ESTRUCTURALES. Se ejecutan con `lint-imports` en cada Pull Request.
+[importlinter]
+root_packages =
+    catalogo
+    comun
+    mercados
+    notificaciones
+    pagos
+    pedidos
+    reparto
+include_external_packages = False
+
+[importlinter:contract:capas]
+name = FF-01 Capas del monolito modular sin ciclos (ADR-001, ADR-004)
+type = layers
+layers =
+    reparto
+    pedidos
+    catalogo | pagos | notificaciones | mercados
+    comun
+
+[importlinter:contract:adaptadores]
+name = FF-02 Solo el arranque conoce los adaptadores de pago (ADR-005)
+type = forbidden
+source_modules =
+    pedidos
+    reparto
+    catalogo
+    notificaciones
+    mercados
+forbidden_modules =
+    pagos.adaptadores

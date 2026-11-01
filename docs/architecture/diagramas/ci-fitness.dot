@@ -1,0 +1,21 @@
+// Lab 08 (E5): las fitness functions como compuerta de cada Pull Request.
+// Renderizar:  dot -Tpng ci-fitness.dot -o img/ci-fitness.png
+digraph CI {
+  graph [rankdir=LR, nodesep=0.22, ranksep=0.45, fontname="Arial", pad=0.2];
+  node [shape=box, style="rounded,filled", fillcolor="#EEF2F8", color="#1A3A5C", fontname="Arial", fontsize=11, margin="0.14,0.08"];
+  edge [color="#444444", fontname="Arial", fontsize=10];
+  PR [label="Pull Request", fillcolor="#1A3A5C", fontcolor="white"];
+  subgraph cluster_ci { label="GitHub Actions: fitness.yml"; fontname="Arial"; fontsize=11; style="rounded,dashed"; color="#1A3A5C";
+    F1 [label="FF-01 y FF-02: lint-imports\n(capas sin ciclos; adaptadores solo en el arranque)"];
+    F2 [label="FF-03 y FF-05: pytest\n(0 condicionales por mercado; mercado nuevo solo con datos)"];
+    F3 [label="FF-06: pytest + PostgreSQL 16\n(0 filas de otro mercado con RLS)"];
+    F4 [label="FF-04, FF-07 y FF-08: simulaciones\n(p95 ≤ 2 s; 0 pedidos perdidos)"];
+    F5 [label="FF-09: structurizr validate\n(modelo C4)"];
+  }
+  Q [label="¿Todo en verde?", shape=diamond, style=filled, fillcolor="#FFF4E5", color="#C8310E"];
+  OK [label="Merge permitido", fillcolor="#EAF4EC", color="#1E7B34"];
+  NO [label="Merge bloqueado:\nla arquitectura se degradó", fillcolor="#F4CCC3", color="#C8310E"];
+  PR -> {F1 F2 F3 F4 F5}; {F1 F2 F3 F4 F5} -> Q;
+  Q -> OK [label=" sí", color="#1E7B34", fontcolor="#1E7B34"];
+  Q -> NO [label=" no", color="#C8310E", fontcolor="#C8310E"];
+}

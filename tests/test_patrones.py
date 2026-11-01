@@ -13,7 +13,8 @@ from comun.excepciones import EstadoInvalidoError
 from notificaciones.puertos import BandejaMensajes
 from notificaciones.suscriptores import NotificadorCliente, NotificadorComerciantes
 from pagos.modelos import EstadoPago, Pago, PasarelaPago
-from pagos.pasarelas import ConReintentos, FabricaPasarelas, PlinAdapter, YapeAdapter
+from pagos.adaptadores import PlinAdapter, YapeAdapter
+from pagos.pasarelas import ConReintentos, FabricaPasarelas
 from pedidos.externos import ClienteClaudeSimulado, PlinClient, YapeSDK
 from pedidos.pedido import Cliente, LineaPedido, Pedido, PedidoPuesto
 from pedidos.servicio import ServicioPedidos
