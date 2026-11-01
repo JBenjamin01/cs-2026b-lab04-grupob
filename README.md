@@ -1,4 +1,4 @@
-# San Camilo en Línea — Laboratorios 04, 05 y 06: arquitectura, diseño UML y modelo C4
+# San Camilo en Línea — Laboratorios 04 a 07: arquitectura, diseño UML, C4 y patrones
 
 Construcción de Software · EPIS-UNSA · 2026-B · Grupo B
 
@@ -109,6 +109,7 @@ Resultado de la [matriz de decisión](docs/architecture/matriz-decision.md):
 - [ADR-002: PostgreSQL con un esquema por módulo](docs/architecture/adr/002-base-de-datos.md)
 - [ADR-003: PWA offline-first](docs/architecture/adr/003-estrategia-offline-pwa.md)
 - [ADR-004: Puertos con tipos neutrales, sin ciclos entre módulos](docs/architecture/adr/004-puertos-sin-ciclos.md) (Lab 05)
+- [ADR-005: Patrones de diseño en el flujo «confirmar y pagar» y en la IA](docs/architecture/adr/005-patrones-de-diseno.md) (Lab 07)
 
 ## Reflexión sobre el uso de la IA
 
@@ -204,85 +205,75 @@ distintos a ADR-002) y también **falsos positivos**: pedir que la notificación
 o marcar como error la navegación `Pedido → PedidoPuesto → LineaPedido → Producto`. Cada hallazgo se
 verificó antes de aceptarlo ([consistencia.md](docs/design/consistencia.md)).
 
----
+## Patrones de diseño (Lab 07)
 
-## Arquitectura C4 (Lab 06)
+Se refactorizó el flujo crítico **«confirmar y pagar un pedido multipuesto»** (HU-03) y se aisló la
+función de IA del caso: **normalizar nombres de productos** («papa amarila» → «Papa amarilla»).
+La versión ingenua se conserva en [`src/pedidos/antes/servicio.py`](src/pedidos/antes/servicio.py)
+para comparar; las mismas pruebas de caracterización se ejecutan sobre las dos versiones.
+Decisión registrada en [ADR-005](docs/architecture/adr/005-patrones-de-diseno.md).
 
-Modelo C4 de San Camilo en Línea escrito como código en un **único archivo**,
-[workspace.dsl](docs/architecture/c4/workspace.dsl) (Structurizr DSL), del que se derivan las cinco
-vistas. Es coherente con ADR-001 a ADR-004 y con el diseño UML del Lab 05 (los componentes son los
-paquetes de [paquetes.puml](docs/design/paquetes.puml); el nivel 4, código, es el diagrama de
-clases [clases.puml](docs/design/clases.puml)).
-
-| Integrante | Rol en el Lab 06 | Entregables |
+| Integrante | Rol en el Lab 07 | Entregables |
 |------------|------------------|-------------|
-| Jhonatan Benjamin Mamani Céspedes | Inventario y modelo (contexto, contenedores y componentes); README y entrega | E1, E2, E3, E8 |
-| Jafet Martin Llave Aguilar | Vista dinámica y despliegue; exportación, revisión con IA y bitácora | E4, E5, E6, E7 |
+| Jhonatan Benjamin Mamani Céspedes | Versión antes y pruebas de caracterización; Strategy + Adapter + Factory; State; README y entrega | E1, E2, E3, E8 |
+| Jafet Martin Llave Aguilar | Observer, Decorator, Composite y tarifas; IA aislada; métricas, diagramas y bitácora | E4, E5, E6, E7 |
 
-### Diagrama de contexto (nivel 1)
+### Olor → patrón → prueba
 
-```mermaid
-graph LR
-    CL["Cliente<br/>[Persona]"]
-    CO["Comerciante<br/>[Persona]"]
-    RE["Repartidor<br/>[Persona]"]
-    SC["San Camilo en Línea<br/>[Sistema de software]"]
-    PP["Proveedor de pagos<br/>[Sistema externo]"]
-    WA["WhatsApp Business Platform<br/>[Sistema externo]"]
+| Olor en la versión antes | Patrón | Dónde | Prueba que lo demuestra |
+|--------------------------|--------|-------|-------------------------|
+| `if/elif` por medio de pago | Strategy + Factory | `pagos/pasarelas.py` | `test_open_closed_nuevo_medio_sin_modificar_el_servicio` |
+| El servicio conoce soles/céntimos y dict/tupla de cada SDK | Adapter | `pagos/pasarelas.py` | `test_adapters_traducen_soles_y_centimos` |
+| Condicionales sobre el estado del pedido y del subpedido | State | `pedidos/estados.py` | `test_state_impide_transiciones_invalidas_del_subpedido` |
+| Reintentos duplicados para Yape y Plin | Decorator | `ConReintentos` | `test_decorator_reintentos_solo_ante_timeout` |
+| Avisos a comerciantes, cliente y reparto armados a mano | Observer | `comun/eventos.py` | `test_observer_nuevo_suscriptor_sin_tocar_el_servicio` |
+| Bucles anidados para totalizar el pedido de varios puestos | Composite | `pedidos/pedido.py` | `test_composite_subtotal_recursivo` |
+| `if/elif` de tarifas de delivery | Strategy | `pedidos/tarifas.py` | `test_strategy_tarifa_nueva_sin_tocar_el_servicio` |
+| `if/elif` por proveedor de LLM y validaciones mezcladas | Strategy + Adapter + Decorator + Chain of Responsibility | `catalogo/ia.py` | `test_chain_cada_guardrail_bloquea_lo_suyo`, `test_decorator_cache_evita_llamadas_repetidas` |
 
-    CL -. "Arma pedidos con productos de varios puestos y los paga con Yape" .-> SC
-    CO -. "Publica sus productos y marca cuáles se agotaron" .-> SC
-    RE -. "Consulta los puestos a recorrer y marca las entregas" .-> SC
-    SC -. "Solicita el cobro del pedido [HTTPS/JSON]" .-> PP
-    PP -. "Notifica el resultado del cobro [HTTPS/JSON]" .-> SC
-    SC -. "Envía la confirmación de cada subpedido [HTTPS/JSON]" .-> WA
-    WA -. "Entrega el aviso del pedido en su WhatsApp" .-> CO
-```
+Patrones rechazados: Singleton, Abstract Factory, Builder, Command y un LLM «juez» (ver
+[olores.md](docs/design/patrones/olores.md)).
 
-### Las cinco vistas
+### Métricas (radon 6.0.1)
 
-| Nivel / vista | Imagen | C4-PlantUML | Mermaid |
-|---------------|--------|-------------|---------|
-| 1. Contexto | [PNG](docs/architecture/c4/img/structurizr-Contexto.png) | [puml](docs/architecture/c4/export/structurizr-Contexto.puml) | [mmd](docs/architecture/c4/export/structurizr-Contexto.mmd) |
-| 2. Contenedores | [PNG](docs/architecture/c4/img/structurizr-Contenedores.png) | [puml](docs/architecture/c4/export/structurizr-Contenedores.puml) | [mmd](docs/architecture/c4/export/structurizr-Contenedores.mmd) |
-| 3. Componentes de la API | [PNG](docs/architecture/c4/img/structurizr-Componentes.png) | [puml](docs/architecture/c4/export/structurizr-Componentes.puml) | [mmd](docs/architecture/c4/export/structurizr-Componentes.mmd) |
-| Dinámica: confirmar y pagar | [PNG](docs/architecture/c4/img/structurizr-ConfirmarYPagar.png) | [puml](docs/architecture/c4/export/structurizr-ConfirmarYPagar.puml) | [mmd](docs/architecture/c4/export/structurizr-ConfirmarYPagar.mmd) |
-| Despliegue: producción | [PNG](docs/architecture/c4/img/structurizr-Despliegue.png) | [puml](docs/architecture/c4/export/structurizr-Despliegue.puml) | [mmd](docs/architecture/c4/export/structurizr-Despliegue.mmd) |
+| Medida | Antes | Después |
+|--------|-------|---------|
+| Complejidad de `confirmar_y_pagar()` | 29 (D) | 2 (A) |
+| Complejidad promedio | 6,07 (B) | 1,63 (A) |
+| Bloque más complejo | 29 | 5 |
+| Líneas de código (SLOC) | 182 | 596 |
+| Archivos | 1 | 13 |
+| Métodos a modificar para un medio de pago nuevo | 2 | 0 |
 
-### Entregables
+El refactor también corrigió dos errores que la versión antes conserva: un medio de pago desconocido
+dejaba el pedido en `PENDIENTE_PAGO` con el stock reservado, y con kilos fraccionados Yape y Plin
+recibían montos distintos. Detalle en [metricas.md](docs/design/patrones/metricas.md).
 
-| Código | Entregable | Archivo |
-|--------|------------|---------|
-| E1 | Inventario y contexto | [inventario.md](docs/architecture/c4/inventario.md) · [workspace.dsl](docs/architecture/c4/workspace.dsl) |
-| E2 | Contenedores | [workspace.dsl](docs/architecture/c4/workspace.dsl) |
-| E3 | Componentes | [workspace.dsl](docs/architecture/c4/workspace.dsl) |
-| E4 | Vista dinámica | [workspace.dsl](docs/architecture/c4/workspace.dsl) · [comparacion.md](docs/architecture/c4/comparacion.md) |
-| E5 | Despliegue | [workspace.dsl](docs/architecture/c4/workspace.dsl) |
-| E6 | Exportación y comparación de herramientas | [export/](docs/architecture/c4/export/) · [img/](docs/architecture/c4/img/) · [contexto-manual.puml](docs/architecture/c4/contexto-manual.puml) · [comparacion.md](docs/architecture/c4/comparacion.md) |
-| E7 | Revisión, comunicación y bitácora de IA | [revision-c4.md](docs/architecture/c4/revision-c4.md) · [explicacion.md](docs/architecture/c4/explicacion.md) · [bitacora-ia.md](docs/architecture/c4/bitacora-ia.md) |
+### Diagramas (PlantUML)
 
-### Cómo validar y regenerar las vistas
+| Patrón | Fuente | Imagen |
+|--------|--------|--------|
+| Pagos: Strategy + Adapter + Factory + Decorator | [pagos.puml](docs/design/patrones/pagos.puml) | [PNG](docs/design/patrones/img/pagos-patrones.png) |
+| State | [state.puml](docs/design/patrones/state.puml) | [PNG](docs/design/patrones/img/state-pedidopuesto.png) |
+| Composite | [composite.puml](docs/design/patrones/composite.puml) | [PNG](docs/design/patrones/img/composite-pedido.png) |
+| Observer | [observer.puml](docs/design/patrones/observer.puml) | [PNG](docs/design/patrones/img/observer-avisos.png) |
+| Strategy (tarifas) | [tarifas.puml](docs/design/patrones/tarifas.puml) | [PNG](docs/design/patrones/img/strategy-tarifas.png) |
+| IA aislada | [ia.puml](docs/design/patrones/ia.puml) | [PNG](docs/design/patrones/img/ia-aislada.png) |
+| Secuencia con los patrones colaborando | [secuencia-patrones.puml](docs/design/patrones/secuencia-patrones.puml) | [PNG](docs/design/patrones/img/secuencia-patrones.png) |
+| Clases del Lab 05 actualizado | [clases.puml](docs/design/clases.puml) | [PNG](docs/design/img/clases-pedidos.png) |
+
+### Cómo probar y medir
 
 ```bash
-# Validar el modelo
-structurizr.sh validate -w docs/architecture/c4/workspace.dsl
-# Exportar a C4-PlantUML y Mermaid
-structurizr.sh export -w docs/architecture/c4/workspace.dsl -f plantuml/c4plantuml -o docs/architecture/c4/export
-structurizr.sh export -w docs/architecture/c4/workspace.dsl -f mermaid -o docs/architecture/c4/export
-# Imágenes PNG
-java -jar plantuml.jar -tpng -o ../img docs/architecture/c4/export/*.puml
-# Navegación interactiva (Structurizr Lite en http://localhost:8080)
-docker run -it --rm -p 8080:8080 -v "$PWD/docs/architecture/c4":/usr/local/structurizr structurizr/lite
+pip install pytest radon pylint
+python -m pytest -q tests                                  # 81 passed, 1 xfailed
+radon cc -s -a src/pedidos/antes/servicio.py               # antes
+radon cc -s -a src --exclude "src/pedidos/antes/*"         # después
 ```
 
-### Lo que aprendimos del modelo
-
-Pasar de UML a C4 nos obligó a decir **qué es cada caja**: un contenedor es algo que se despliega
-por separado (la API, el worker, Redis, PostgreSQL), no un contenedor Docker; nuestro MVP corre con
-systemd en un único VPS. Modelar una sola vez (`workspace.dsl`) evitó tener cinco diagramas
-sueltos que se desactualicen. Revisión con IA y falsos positivos:
-[revision-c4.md](docs/architecture/c4/revision-c4.md).
-
+No se necesita clave de API: los SDK de pagos y los LLM están simulados en `src/pedidos/externos.py`.
+La GitHub Action [`calidad.yml`](.github/workflows/calidad.yml) ejecuta las pruebas y falla si algún
+bloque de la versión con patrones supera complejidad 10.
 
 ## Estructura del repositorio
 
@@ -290,18 +281,23 @@ sueltos que se desactualicen. Revisión con IA y falsos positivos:
 cs-2026b-lab04-grupob/
 ├── README.md
 ├── docs/
-│   ├── architecture/          # Laboratorio 04 (+ ADR-004 del Lab 05)
+│   ├── architecture/          # Laboratorio 04 (+ ADR-004 del Lab 05 y ADR-005 del Lab 07)
 │   │   ├── drivers.md, matriz-decision.md, bitacora-ia.md
 │   │   ├── anexos/            # respuestas completas de Gemini y ChatGPT
-│   │   ├── adr/               # 000-plantilla, 001, 002, 003, 004
+│   │   ├── adr/               # 000-plantilla, 001 a 005
+│   │   ├── c4/                # Laboratorio 06: workspace.dsl, inventario.md
 │   │   └── diagramas/         # arquitectura.mmd, alternativa.puml, despliegue.py, img/
-│   │   └── c4/                # Laboratorio 06: workspace.dsl, export/, img/, inventario.md, revision-c4.md...
 │   └── design/                # Laboratorio 05
 │       ├── historia.md, clases.puml, secuencia-confirmar-pagar.puml
 │       ├── estados-pedidopuesto.mmd, actividades-consolidar-pedido.puml, paquetes.puml
 │       ├── classes_pedidos_pyreverse.puml, packages_sancamilo_pyreverse.puml
 │       ├── round-trip.md, consistencia.md, bitacora-ia.md
-│       └── img/               # PNG de todos los diagramas
-├── src/                       # E6: comun, catalogo, pagos, notificaciones, pedidos, reparto
-└── tests/                     # E6: pruebas derivadas de la máquina de estados y de HU-03
+│       ├── img/               # PNG de todos los diagramas
+│       └── patrones/          # Laboratorio 07: olores, métricas, un .puml por patrón, bitácora
+├── src/
+│   ├── arranque.py            # Lab 07: raíz de composición (conecta los patrones)
+│   ├── pedidos/antes/         # Lab 07: versión ingenua, solo para comparar
+│   └── comun, catalogo, pagos, notificaciones, pedidos, reparto
+├── tests/                     # caracterización (antes y después), patrones y máquina de estados
+└── .github/workflows/         # Lab 07 (reto): pruebas y complejidad en cada push
 ```
