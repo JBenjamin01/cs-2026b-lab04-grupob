@@ -4,14 +4,19 @@
 - Cada adaptador es una estrategia intercambiable de cobro (Strategy).
 - ConReintentos agrega reintentos ante TimeoutError sin modificar los adaptadores (Decorator).
 - FabricaPasarelas crea la estrategia por nombre; un medio nuevo solo se registra (Factory).
+
+Lab 08 (ADR-008): la fábrica envuelve cada medio con ConCircuitBreaker y conserva UNA instancia
+por medio, porque el circuito necesita recordar las fallas entre un cobro y el siguiente.
 """
 from __future__ import annotations
 
+import time
 from decimal import Decimal
 from typing import Callable
 from uuid import UUID
 
 from pagos.modelos import EstadoPago, Pago, PasarelaPago
+from pagos.resiliencia import ConCircuitBreaker
 
 
 # ---------- ADAPTER: traduce cada SDK a la interfaz PasarelaPago ----------
@@ -79,14 +84,23 @@ class ConReintentos(PasarelaPago):
 class FabricaPasarelas:
     """Se crea e inyecta una instancia (no es Singleton): las pruebas registran SDK simulados."""
 
-    def __init__(self, intentos: int = 3):
+    def __init__(self, intentos: int = 3, umbral_circuito: int = 3, espera_circuito_s: float = 60,
+                 reloj: Callable[[], float] = time.monotonic):
         self._creadores: dict[str, Callable[[], PasarelaPago]] = {}
+        self._pasarelas: dict[str, PasarelaPago] = {}
         self._intentos = intentos
+        self._umbral = umbral_circuito
+        self._espera = espera_circuito_s
+        self._reloj = reloj
 
     def registrar(self, medio: str, creador: Callable[[], PasarelaPago]) -> None:
         self._creadores[medio] = creador
+        self._pasarelas.pop(medio, None)
 
     def crear(self, medio: str) -> PasarelaPago:
         if medio not in self._creadores:
             raise ValueError(f"Medio de pago no soportado: {medio}")
-        return ConReintentos(self._creadores[medio](), self._intentos)
+        if medio not in self._pasarelas:
+            self._pasarelas[medio] = ConCircuitBreaker(ConReintentos(self._creadores[medio](), self._intentos),
+                                                       self._umbral, self._espera, self._reloj)
+        return self._pasarelas[medio]

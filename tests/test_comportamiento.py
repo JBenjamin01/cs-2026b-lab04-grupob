@@ -82,10 +82,13 @@ def test_reintenta_tras_dos_timeouts(m, puestos):
     assert yape.llamadas == 3
 
 
-def test_tres_timeouts_cancelan_el_pedido(m, puestos):
+def test_tres_timeouts_no_cobran_el_pedido(m, puestos):
+    """Lab 08 (ADR-008) cambia este comportamiento a propósito: antes el pedido se CANCELABA;
+    con la outbox de pagos queda PENDIENTE_PAGO y se reintenta cuando el proveedor vuelve."""
     plin = PlinClient(fallas=3)
     app = m.crear_servicio_pedidos(plin=plin)
-    assert app.servicio.confirmar_y_pagar(pedido_dos_puestos(m, puestos), "PLIN") == "CANCELADO"
+    esperado = "CANCELADO" if m.__name__ == "pedidos.antes.servicio" else "PENDIENTE_PAGO"
+    assert app.servicio.confirmar_y_pagar(pedido_dos_puestos(m, puestos), "PLIN") == esperado
     assert plin.llamadas == 3
 
 
