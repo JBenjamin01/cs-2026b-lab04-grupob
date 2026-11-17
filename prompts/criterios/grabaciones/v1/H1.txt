@@ -1,0 +1,60 @@
+## Historia de usuario
+
+Como comerciante del mercado, quiero publicar un producto con su foto, precio y unidad de medida desde mi celular en pocos toques, para vender sin descuidar mi puesto.
+
+## Criterios de aceptación
+
+### 1. Acceso rápido a la publicación
+**Dado** que el comerciante ha iniciado sesión en la aplicación desde su celular,
+**cuando** está en la pantalla principal,
+**entonces** ve un botón visible de "Publicar producto" que lo lleva directamente al formulario de publicación, sin pasos intermedios.
+
+### 2. Publicación en pocos toques
+**Dado** que el comerciante está en el formulario de publicación,
+**cuando** completa los datos obligatorios (foto, nombre, precio y unidad de medida) y pulsa "Publicar",
+**entonces** el producto se publica en un máximo de 5 toques desde la pantalla principal (sin contar la escritura del nombre y el precio), y se muestra un mensaje de confirmación.
+
+### 3. Foto del producto
+**Dado** que el comerciante debe agregar una foto,
+**cuando** pulsa el campo de foto,
+**entonces** puede elegir entre tomar una foto con la cámara o seleccionarla de la galería.
+**Y** la foto se muestra como vista previa antes de publicar, con la opción de cambiarla.
+**Y** el sistema acepta formatos JPG y PNG, y reduce automáticamente el tamaño de la imagen para que se suba rápido incluso con conexión móvil lenta.
+
+### 4. Precio
+**Dado** que el comerciante ingresa el precio,
+**cuando** escribe el valor,
+**entonces** el campo muestra un teclado numérico y solo acepta valores numéricos mayores que cero, con hasta dos decimales.
+**Y** si el valor es inválido o está vacío, se muestra un mensaje de error claro junto al campo y no se permite publicar.
+
+### 5. Unidad de medida
+**Dado** que el comerciante debe indicar la unidad de medida,
+**cuando** abre el selector,
+**entonces** ve una lista corta de opciones comunes de mercado (por ejemplo: kilo, libra, unidad, docena, litro, atado/manojo, bolsa).
+**Y** la selección se realiza con un solo toque y la unidad elegida se muestra junto al precio (por ejemplo: "S/ 4.50 por kilo").
+
+### 6. Validación de datos obligatorios
+**Dado** que falta alguno de los datos obligatorios (foto, nombre, precio o unidad de medida),
+**cuando** el comerciante intenta publicar,
+**entonces** el sistema no publica el producto, resalta los campos faltantes y muestra un mensaje indicando qué debe completar.
+**Y** los datos ya ingresados se conservan.
+
+### 7. Uso con conexión inestable
+**Dado** que el comerciante no tiene conexión a internet o esta es inestable,
+**cuando** pulsa "Publicar",
+**entonces** el sistema guarda el producto localmente, informa que se publicará cuando haya conexión y lo envía automáticamente al recuperarla, sin perder datos.
+
+### 8. Tiempo de respuesta
+**Dado** que el comerciante pulsa "Publicar" con conexión estable,
+**cuando** se envía la información,
+**entonces** el producto aparece publicado en menos de 5 segundos y el comerciante recibe confirmación visual.
+
+### 9. Usabilidad en celular
+**Dado** que el comerciante usa un celular de pantalla pequeña,
+**cuando** interactúa con el formulario,
+**entonces** los botones y campos tienen un tamaño táctil adecuado (mínimo 44x44 px), los textos son legibles con buen contraste y el formulario puede completarse con una sola mano.
+
+### 10. Visualización del producto publicado
+**Dado** que el producto fue publicado correctamente,
+**cuando** el comerciante revisa su lista de productos,
+**entonces** ve el producto con su foto, nombre, precio y unidad de medida, y puede editarlo o retirarlo de la publicación.

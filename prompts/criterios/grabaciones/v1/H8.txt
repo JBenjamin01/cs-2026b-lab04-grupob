@@ -1,0 +1,79 @@
+## Historia técnica
+
+Migrar el catálogo a microservicios con Redis y Celery para mejorar el rendimiento de las consultas.
+
+## Nota previa
+
+Esta historia describe una solución técnica y no un valor para el usuario. Los criterios se plantean desde el resultado esperado (rendimiento, correctitud y operación). Las cifras son propuestas que deben validarse con una medición de línea base del sistema actual.
+
+## Criterios de aceptación
+
+### 1. Servicio de catálogo independiente
+**Dado** que el catálogo se ejecuta como un microservicio,
+**cuando** se despliega,
+**entonces** tiene su propio repositorio o módulo, su propio proceso desplegable y su propia base de datos o esquema, y se comunica con el resto del sistema solo mediante una API documentada (por ejemplo, OpenAPI).
+**Y** puede desplegarse, escalarse y reiniciarse sin afectar a los demás servicios.
+
+### 2. Compatibilidad funcional
+**Dado** que existen las funcionalidades actuales del catálogo (listar, buscar, filtrar, ver detalle, crear, editar y retirar productos),
+**cuando** se ejecutan contra el nuevo servicio,
+**entonces** devuelven los mismos resultados y contratos que antes de la migración.
+**Y** todas las pruebas de regresión existentes pasan sin modificaciones.
+
+### 3. Migración de datos sin pérdida
+**Dado** que se migran los datos del catálogo,
+**cuando** finaliza la migración,
+**entonces** el número de registros y la integridad de los datos coinciden con el origen (validado con conteos y checksums), sin pérdida ni duplicados.
+**Y** existe un procedimiento de reversión (rollback) probado.
+
+### 4. Caché con Redis
+**Dado** que se consultan datos del catálogo de lectura frecuente (listados, detalle de producto, búsquedas comunes),
+**cuando** el dato está en Redis,
+**entonces** la respuesta se sirve desde la caché sin consultar la base de datos.
+**Y** las entradas tienen un tiempo de expiración (TTL) definido.
+**Y** la tasa de aciertos de caché (cache hit ratio) en operación normal es de al menos 80 %.
+
+### 5. Invalidación y consistencia de caché
+**Dado** que un producto se crea, edita, cambia de precio o se marca como agotado,
+**cuando** el cambio se confirma,
+**entonces** las entradas de caché afectadas se invalidan o actualizan, y las consultas posteriores devuelven el dato actualizado en un máximo de 5 segundos.
+
+### 6. Tareas asíncronas con Celery
+**Dado** que existen tareas costosas o no urgentes (por ejemplo: reindexado, procesamiento de imágenes, actualización masiva de precios, calentamiento de caché),
+**cuando** se solicitan,
+**entonces** se encolan y ejecutan en workers de Celery sin bloquear la respuesta de la API.
+**Y** las tareas son idempotentes, tienen reintentos con espera creciente y un límite máximo de intentos.
+**Y** las tareas fallidas definitivamente quedan registradas para su revisión.
+
+### 7. Mejora del rendimiento
+**Dado** que se mide el rendimiento con una prueba de carga bajo las mismas condiciones antes y después de la migración,
+**cuando** se comparan los resultados,
+**entonces** el tiempo de respuesta p95 de las consultas de lectura del catálogo mejora al menos un 40 % respecto a la línea base (o es menor a 200 ms).
+**Y** el servicio sostiene como mínimo el doble de solicitudes por segundo respecto a la línea base, con una tasa de errores menor al 1 %.
+
+### 8. Resiliencia ante fallos de Redis o Celery
+**Dado** que Redis no está disponible,
+**cuando** llegan consultas al catálogo,
+**entonces** el servicio responde consultando la base de datos (degradación controlada) sin errores visibles para el usuario.
+**Y** si los workers de Celery se detienen, las tareas permanecen en cola y se procesan al recuperarse el servicio, sin pérdida.
+
+### 9. Observabilidad
+**Dado** que el servicio está en producción,
+**cuando** se monitorea,
+**entonces** se exponen métricas (latencia, tasa de errores, cache hit ratio, longitud de la cola, tiempos de tareas), registros estructurados y un endpoint de salud (health check).
+**Y** existen alertas configuradas para los umbrales críticos.
+
+### 10. Seguridad
+**Dado** que la comunicación entre servicios y con Redis,
+**cuando** se establece,
+**entonces** requiere autenticación, las credenciales se gestionan como secretos (no en el código) y Redis no queda expuesto públicamente.
+
+### 11. Despliegue gradual
+**Dado** que se realiza el cambio a producción,
+**cuando** se activa el nuevo servicio,
+**entonces** se hace de manera gradual (por ejemplo, con feature flag o despliegue canario), sin tiempo de inactividad perceptible y con posibilidad de volver al sistema anterior en minutos.
+
+### 12. Documentación
+**Dado** que la migración ha finalizado,
+**cuando** el equipo la revisa,
+**entonces** existe documentación actualizada de la arquitectura, la API, la estrategia de caché, las tareas de Celery y el procedimiento de operación y rollback.

@@ -1,0 +1,70 @@
+## Historia de usuario
+
+Como administrador del mercado Altiplano, quiero cambiar el pedido mínimo de mi mercado, para adaptarlo a la temporada.
+
+## Criterios de aceptación
+
+### 1. Acceso restringido
+**Dado** que un usuario ha iniciado sesión,
+**cuando** intenta acceder a la configuración del pedido mínimo,
+**entonces** solo puede hacerlo si tiene rol de administrador del mercado Altiplano.
+**Y** un administrador de otro mercado o un usuario sin ese rol no puede ver ni modificar el valor, y el sistema lo rechaza con un mensaje de permiso insuficiente.
+
+### 2. Visualización del valor actual
+**Dado** que el administrador abre la configuración del mercado,
+**cuando** se muestra la pantalla,
+**entonces** ve el pedido mínimo vigente en soles (S/), junto con la fecha de su última modificación y quién la realizó.
+
+### 3. Modificación del valor
+**Dado** que el administrador está en la configuración,
+**cuando** ingresa un nuevo monto y guarda,
+**entonces** el sistema actualiza el pedido mínimo del mercado y muestra una confirmación.
+
+### 4. Validación del monto
+**Dado** que el administrador ingresa un valor,
+**cuando** intenta guardar,
+**entonces** el sistema acepta solo valores numéricos mayores o iguales a cero, con hasta dos decimales, y dentro de un rango máximo definido por el negocio.
+**Y** si el valor es inválido, vacío o no numérico, se muestra un mensaje de error claro y no se guarda el cambio.
+
+### 5. Confirmación previa
+**Dado** que el administrador ingresó un nuevo monto distinto al actual,
+**cuando** pulsa "Guardar",
+**entonces** el sistema muestra el valor anterior y el nuevo, y solicita confirmación antes de aplicar el cambio.
+
+### 6. Aplicación del cambio a nuevos pedidos
+**Dado** que el pedido mínimo fue actualizado,
+**cuando** un cliente intenta confirmar un pedido después del cambio,
+**entonces** el sistema valida el pedido contra el nuevo monto mínimo.
+**Y** si el total es menor al mínimo, informa al cliente cuánto le falta para alcanzarlo y no permite continuar al pago.
+
+### 7. Pedidos ya existentes
+**Dado** que existen pedidos pagados o en proceso antes del cambio,
+**cuando** el administrador modifica el pedido mínimo,
+**entonces** esos pedidos no se ven afectados ni se anulan.
+**Y** los carritos en curso se validan con el nuevo valor al momento de confirmar el pedido.
+
+### 8. Visibilidad para los clientes
+**Dado** que el pedido mínimo cambió,
+**cuando** un cliente consulta el mercado o su carrito,
+**entonces** ve el pedido mínimo vigente actualizado, sin necesidad de reinstalar o reiniciar la aplicación, en un máximo de 1 minuto.
+
+### 9. Alcance por mercado
+**Dado** que la plataforma puede tener varios mercados,
+**cuando** el administrador del mercado Altiplano cambia el pedido mínimo,
+**entonces** el cambio se aplica únicamente a ese mercado y no modifica la configuración de otros.
+
+### 10. Historial de cambios
+**Dado** que se modificó el pedido mínimo,
+**cuando** se consulta el historial,
+**entonces** queda registrado el valor anterior, el valor nuevo, el administrador que lo cambió, y la fecha y hora del cambio.
+
+### 11. Programación opcional para la temporada
+**Dado** que el cambio responde a una temporada,
+**cuando** el administrador lo configura,
+**entonces** puede aplicarlo de inmediato o programarlo para una fecha de inicio (y opcionalmente de fin), tras la cual el sistema restituye el valor anterior o el definido.
+**Y** la programación puede consultarse, editarse o cancelarse antes de entrar en vigencia.
+
+### 12. Manejo de errores
+**Dado** que ocurre un error al guardar (por ejemplo, falla de conexión),
+**cuando** el sistema no puede completar la operación,
+**entonces** informa al administrador, conserva el valor anterior y permite reintentar sin perder lo ingresado.

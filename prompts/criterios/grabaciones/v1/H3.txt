@@ -1,0 +1,71 @@
+## Historia de usuario
+
+Como cliente, quiero reunir en un solo pedido productos de varios puestos y pagarlo una sola vez con Yape o Plin, para recibir mi compra junta sin pagar puesto por puesto.
+
+## Criterios de aceptación
+
+### 1. Carrito con productos de varios puestos
+**Dado** que el cliente está navegando el catálogo del mercado,
+**cuando** agrega productos de distintos puestos,
+**entonces** todos se acumulan en un único carrito/pedido, agrupados visualmente por puesto.
+**Y** cada producto muestra nombre, puesto, cantidad, unidad de medida, precio unitario y subtotal.
+
+### 2. Edición del pedido
+**Dado** que el carrito contiene productos,
+**cuando** el cliente cambia cantidades o elimina productos,
+**entonces** los subtotales y el total se recalculan de inmediato.
+**Y** si el carrito queda vacío, no se permite continuar al pago.
+
+### 3. Disponibilidad de los productos
+**Dado** que el cliente intenta agregar o confirmar un producto,
+**cuando** el producto figura como agotado o la cantidad solicitada supera la disponible,
+**entonces** el sistema no lo permite e informa al cliente claramente cuál producto presenta el problema.
+
+### 4. Resumen y total único
+**Dado** que el cliente va a confirmar el pedido,
+**cuando** accede al resumen,
+**entonces** ve el detalle por puesto, los costos adicionales (por ejemplo, entrega, si aplica) y un único monto total a pagar en soles.
+
+### 5. Selección del método de pago
+**Dado** que el cliente está en el paso de pago,
+**cuando** elige el método,
+**entonces** puede seleccionar Yape o Plin, y se le indica claramente el monto y los pasos a seguir.
+
+### 6. Pago único
+**Dado** que el pedido incluye productos de varios puestos,
+**cuando** el cliente realiza el pago,
+**entonces** se efectúa una sola transacción por el monto total, sin solicitar pagos separados por puesto.
+**Y** el sistema distribuye internamente el monto correspondiente a cada puesto.
+
+### 7. Confirmación del pago
+**Dado** que el cliente completó el pago con Yape o Plin,
+**cuando** el sistema recibe la confirmación del proveedor de pago,
+**entonces** el pedido pasa a estado "Pagado" y el cliente recibe un comprobante o confirmación con el detalle, el número de pedido y el total.
+**Y** cada puesto involucrado recibe una notificación con los productos que debe preparar.
+
+### 8. Pago fallido o no completado
+**Dado** que el pago es rechazado, expira o el cliente lo cancela,
+**cuando** el sistema detecta que no se completó,
+**entonces** el pedido no se confirma, no se notifica a los puestos, y el cliente puede reintentar el pago o cambiar de método sin perder su carrito.
+**Y** nunca se realiza un cobro duplicado por el mismo pedido.
+
+### 9. Entrega conjunta
+**Dado** que el pedido está pagado,
+**cuando** los puestos preparan sus productos,
+**entonces** el pedido se consolida y se entrega o se deja disponible para recojo como una sola compra.
+**Y** el cliente puede ver el estado del pedido (por ejemplo: pagado, en preparación, listo, entregado).
+
+### 10. Puesto que no puede cumplir
+**Dado** que un puesto no puede entregar alguno de los productos después del pago,
+**cuando** lo informa en el sistema,
+**entonces** se notifica al cliente de inmediato y se le ofrece una alternativa (sustituir, continuar sin el producto) y el reembolso correspondiente al monto no cumplido.
+
+### 11. Seguridad y privacidad
+**Dado** que el cliente realiza un pago,
+**cuando** se procesa la transacción,
+**entonces** la comunicación se realiza de forma cifrada y la aplicación no almacena datos sensibles de pago del cliente.
+
+### 12. Rendimiento y disponibilidad
+**Dado** que el cliente confirma su pedido,
+**cuando** el sistema procesa la solicitud,
+**entonces** la confirmación del pedido se muestra en menos de 5 segundos tras recibir la confirmación del pago.

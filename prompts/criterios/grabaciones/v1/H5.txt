@@ -1,0 +1,61 @@
+## Historia de usuario
+
+Como cliente, quiero ver el costo de delivery según mi distrito antes de pagar, para decidir si me conviene el delivery o recoger en el mercado.
+
+## Criterios de aceptación
+
+### 1. Opciones de entrega visibles
+**Dado** que el cliente tiene productos en su pedido y avanza hacia el pago,
+**cuando** llega al paso de entrega,
+**entonces** ve dos opciones claras: "Delivery" y "Recoger en el mercado".
+
+### 2. Selección del distrito
+**Dado** que el cliente elige "Delivery",
+**cuando** indica su dirección o selecciona su distrito,
+**entonces** el sistema muestra el costo de delivery correspondiente a ese distrito en soles (S/).
+**Y** el cliente puede cambiar de distrito y el costo se actualiza de inmediato.
+
+### 3. Distrito sin cobertura
+**Dado** que el cliente selecciona un distrito en el que no se hace delivery,
+**cuando** el sistema valida la cobertura,
+**entonces** se muestra un mensaje indicando que no hay cobertura en esa zona y se sugiere la opción de recoger en el mercado.
+**Y** no se permite continuar al pago con delivery para ese distrito.
+
+### 4. Recojo en el mercado
+**Dado** que el cliente elige "Recoger en el mercado",
+**cuando** se muestra el resumen,
+**entonces** el costo de entrega es S/ 0.00, y se muestra la dirección del mercado y el horario de recojo.
+
+### 5. Costo visible antes de pagar
+**Dado** que el cliente se encuentra en el resumen del pedido,
+**cuando** revisa los importes,
+**entonces** ve desglosados el subtotal de los productos, el costo de delivery (o S/ 0.00 si recoge) y el total final a pagar.
+**Y** el costo de delivery se muestra antes de que el cliente confirme el pago, sin cargos ocultos o adicionales posteriores.
+
+### 6. Comparación entre opciones
+**Dado** que el cliente aún no ha decidido,
+**cuando** alterna entre "Delivery" y "Recoger en el mercado",
+**entonces** el total se recalcula al instante y refleja la opción seleccionada, para que pueda comparar.
+
+### 7. Coherencia del monto cobrado
+**Dado** que el cliente confirmó el pedido,
+**cuando** se realiza el pago,
+**entonces** el monto cobrado coincide exactamente con el total mostrado en el resumen, incluido el costo de delivery.
+**Y** el comprobante del pedido registra el costo de delivery por separado.
+
+### 8. Tarifas configurables
+**Dado** que el administrador actualiza las tarifas de delivery por distrito,
+**cuando** el cliente consulta el costo,
+**entonces** ve la tarifa vigente.
+**Y** si la tarifa cambia mientras el cliente está en el proceso de compra, se le informa del cambio antes de pagar.
+
+### 9. Un solo cobro de delivery por pedido
+**Dado** que el pedido incluye productos de varios puestos,
+**cuando** se calcula el costo de delivery,
+**entonces** se aplica un único costo por el pedido completo y no uno por puesto.
+
+### 10. Datos faltantes o errores
+**Dado** que el cliente no ha indicado su distrito,
+**cuando** intenta continuar al pago con delivery,
+**entonces** el sistema solicita el distrito y no muestra un costo hasta tenerlo.
+**Y** si ocurre un error al obtener la tarifa, se muestra un mensaje claro y no se permite pagar con un costo incorrecto.
