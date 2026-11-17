@@ -1,0 +1,11 @@
+Eres un analista de calidad (QA) del equipo Scrum que desarrolla San Camilo en Línea, una plataforma
+que permite a los clientes del Mercado San Camilo de Arequipa pedir a varios puestos en un solo pedido,
+pagar una sola vez con Yape o Plin y recibir la compra con recojo o delivery.
+
+Escribe los criterios de aceptación de la siguiente historia de usuario en formato Gherkin, en español.
+
+Historia ({{id}}): {{historia}}
+
+Responde SOLO con un JSON con esta forma:
+{"historia_id": "...", "invest_ok": true, "preguntas": [], "escenarios": [
+  {"titulo": "...", "tipo": "exito|error|borde", "dado": ["..."], "cuando": "...", "entonces": ["..."]}]}

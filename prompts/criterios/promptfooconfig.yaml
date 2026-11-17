@@ -4,6 +4,8 @@ description: "San Camilo en Línea: criterios de aceptación (Gherkin en JSON) a
 
 prompts:
   - file://v1.txt
+  - file://v2.txt
+  - file://v3.txt
 
 providers:
   - id: file://../proveedor_grabado.py
