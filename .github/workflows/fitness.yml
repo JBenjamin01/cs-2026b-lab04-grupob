@@ -27,7 +27,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Instalar dependencias
-        run: pip install import-linter pytest "psycopg[binary]"
+        run: pip install import-linter pytest "psycopg[binary]" jsonschema pyyaml
       - name: FF-01 y FF-02 (estructura, import-linter)
         run: PYTHONPATH=src lint-imports
       - name: FF-02 a FF-08 (pytest)
