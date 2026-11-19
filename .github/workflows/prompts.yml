@@ -1,0 +1,38 @@
+# Lab 09 (E7): evaluación de los prompts en cada Pull Request, con el proveedor grabado (sin clave de API).
+# promptfoo termina con error si falla cualquier caso, y v1 y v2 fallan a propósito (se conservan para
+# mostrar la evolución); por eso la evaluación completa se guarda como reporte y la compuerta
+# verificar_meta.py decide solo sobre la versión en producción (prompts/versiones.json).
+name: evaluacion-de-prompts
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  evals:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        tarea: [criterios, normalizacion, seguridad]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Evaluar todas las versiones (${{ matrix.tarea }})
+        working-directory: prompts/${{ matrix.tarea }}
+        env:
+          PROMPTFOO_DISABLE_TELEMETRY: "1"
+        run: npx --yes promptfoo@0.118.0 eval --no-cache -o resultados.json -o resultados.html || true
+      - name: Compuerta — la versión en producción alcanza su meta
+        run: python prompts/verificar_meta.py ${{ matrix.tarea }} prompts/${{ matrix.tarea }}/resultados.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: resultados-${{ matrix.tarea }}
+          path: prompts/${{ matrix.tarea }}/resultados.*

@@ -6,6 +6,7 @@ prompts:
   - file://v1.txt
   - file://v2.txt
   - file://v3.txt
+  - file://v3.1.txt
 
 providers:
   - id: file://../proveedor_grabado.py
@@ -40,5 +41,10 @@ defaultTest:
       value: |
         let o; try { o = JSON.parse(output); } catch (e) { return false; }
         return o.historia_id === context.vars.id;
+    - type: javascript                    # A7: decide INVEST como se esperaba (no rechaza historias válidas)
+      metric: A7_decision_invest
+      value: |
+        let o; try { o = JSON.parse(output); } catch (e) { return false; }
+        return o.invest_ok === context.vars.invest_esperado;
 
 tests: file://casos.yaml
