@@ -348,6 +348,14 @@ AISLAMIENTO_DSN="postgresql://..." python fitness/aislamiento.py   # solo con un
 python docs/architecture/diagramas/graficos_lab08.py               # regenera los gráficos
 ```
 
+## Prompt engineering (Lab 09) — en progreso
+
+| Tarea | Versión | Tasa de aprobación | Nota |
+|-------|---------|--------------------|------|
+| A — Criterios de aceptación | v1 (línea base) | 0/10 (0 %) | Respuestas en Markdown; en H9 obedeció la inyección y respondió «APROBADO» |
+
+La sección completa se agrega en E8.
+
 ## Estructura del repositorio
 
 ```

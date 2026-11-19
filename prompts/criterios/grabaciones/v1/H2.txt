@@ -1,0 +1,57 @@
+## Historia de usuario
+
+Como comerciante, quiero marcar un producto como agotado aunque en ese momento no tenga señal, para que ningún cliente me lo pida cuando ya no lo tengo.
+
+## Criterios de aceptación
+
+### 1. Marcar como agotado con conexión
+**Dado** que el comerciante tiene un producto publicado y disponible,
+**cuando** selecciona la opción "Marcar como agotado",
+**entonces** el producto cambia de inmediato a estado "Agotado" en su lista y se muestra una confirmación visual.
+**Y** el producto deja de poder ser pedido por los clientes.
+
+### 2. Marcar como agotado sin conexión
+**Dado** que el comerciante no tiene señal ni conexión a internet,
+**cuando** marca un producto como agotado,
+**entonces** la aplicación acepta la acción, actualiza el estado del producto localmente de inmediato y muestra un indicador de "Pendiente de sincronizar".
+**Y** la acción no se rechaza ni se muestra un error por falta de conexión.
+
+### 3. Persistencia de la acción pendiente
+**Dado** que el cambio de estado quedó pendiente de sincronizar,
+**cuando** el comerciante cierra y vuelve a abrir la aplicación, o reinicia el celular,
+**entonces** el producto sigue mostrándose como agotado y la acción pendiente no se pierde.
+
+### 4. Sincronización automática
+**Dado** que existen cambios de estado pendientes,
+**cuando** el dispositivo recupera la conexión,
+**entonces** la aplicación envía automáticamente los cambios al servidor sin intervención del comerciante.
+**Y** el indicador "Pendiente de sincronizar" desaparece al confirmarse la sincronización.
+**Y** si la sincronización falla, la aplicación reintenta automáticamente y mantiene el indicador de pendiente.
+
+### 5. Visibilidad para los clientes
+**Dado** que el cambio ya fue sincronizado,
+**cuando** un cliente consulta el catálogo,
+**entonces** el producto aparece como "Agotado" (o deja de mostrarse como disponible) y no puede agregarse a un pedido.
+**Y** la actualización es visible para los clientes en un máximo de 10 segundos tras la sincronización.
+
+### 6. Pedidos durante el periodo sin conexión
+**Dado** que el comerciante marcó el producto como agotado sin conexión y aún no se ha sincronizado,
+**cuando** un cliente intenta pedir ese producto antes de la sincronización,
+**entonces** al sincronizarse, el sistema impide que el pedido se confirme o notifica al comerciante y al cliente que el producto está agotado.
+**Y** el comerciante puede ver cuáles pedidos se vieron afectados.
+
+### 7. Conflicto de datos
+**Dado** que el producto fue modificado desde otro dispositivo o por otro proceso mientras el comerciante estaba sin conexión,
+**cuando** se sincroniza el cambio a agotado,
+**entonces** prevalece el estado más reciente definido por el comerciante, y el sistema registra la fecha y hora en que él realizó la acción.
+
+### 8. Reversión
+**Dado** que un producto está marcado como agotado,
+**cuando** el comerciante selecciona "Marcar como disponible" (con o sin conexión),
+**entonces** el producto vuelve a estado disponible bajo las mismas reglas de funcionamiento sin conexión y sincronización.
+
+### 9. Facilidad de uso
+**Dado** que el comerciante está atendiendo su puesto,
+**cuando** quiere marcar un producto como agotado,
+**entonces** puede hacerlo en un máximo de 2 toques desde la lista de sus productos, con un botón o interruptor de tamaño táctil adecuado.
+**Y** se solicita confirmación solo si la acción puede deshacerse fácilmente (por ejemplo, con opción "Deshacer" durante unos segundos).

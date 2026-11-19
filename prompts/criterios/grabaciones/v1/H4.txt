@@ -1,0 +1,64 @@
+## Historia de usuario
+
+Como comerciante, quiero recibir un aviso por WhatsApp cuando un cliente pague un pedido que incluye productos de mi puesto, para prepararlo a tiempo.
+
+## Criterios de aceptación
+
+### 1. Envío del aviso tras el pago
+**Dado** que un cliente completó y se confirmó el pago de un pedido que incluye al menos un producto de mi puesto,
+**cuando** el sistema registra el pago como exitoso,
+**entonces** envío automáticamente un mensaje de WhatsApp al número registrado del comerciante.
+**Y** el mensaje se envía en un máximo de 1 minuto desde la confirmación del pago.
+
+### 2. Sin aviso si el pago no se confirma
+**Dado** que el pago está pendiente, fue rechazado, expiró o fue cancelado,
+**cuando** el sistema evalúa el pedido,
+**entonces** no se envía ningún aviso al comerciante.
+
+### 3. Contenido del mensaje
+**Dado** que se envía el aviso,
+**cuando** el comerciante lo recibe,
+**entonces** el mensaje incluye como mínimo: número de pedido, fecha y hora del pago, y la lista de productos de su puesto con cantidad y unidad de medida.
+**Y** muestra el subtotal correspondiente a su puesto.
+**Y** puede incluir la hora o modalidad de entrega o recojo, si aplica.
+
+### 4. Solo información de su puesto
+**Dado** que el pedido incluye productos de varios puestos,
+**cuando** se envía el aviso a un comerciante,
+**entonces** el mensaje contiene únicamente los productos de su propio puesto.
+**Y** no se revelan datos de otros puestos ni los productos que ellos venden.
+**Y** no se incluye información sensible del cliente más allá de lo necesario (por ejemplo, nombre o alias y modalidad de entrega).
+
+### 5. Un aviso por puesto y por pedido
+**Dado** que un pedido pagado incluye productos de varios puestos,
+**cuando** se envían los avisos,
+**entonces** cada comerciante recibe un único mensaje con sus productos, no uno por cada producto.
+**Y** no se envían avisos duplicados para el mismo pedido, aunque el sistema reciba la confirmación de pago más de una vez.
+
+### 6. Consentimiento y número registrado
+**Dado** que el comerciante desea recibir avisos,
+**cuando** registra su número de WhatsApp y acepta recibir notificaciones,
+**entonces** el sistema envía los avisos solo a ese número.
+**Y** el comerciante puede cambiar el número o desactivar los avisos en cualquier momento.
+
+### 7. Falla en el envío
+**Dado** que el envío por WhatsApp falla (número inválido, servicio no disponible o sin conexión del destinatario),
+**cuando** el sistema detecta la falla,
+**entonces** reintenta el envío automáticamente un número definido de veces (por ejemplo, 3 reintentos en 5 minutos).
+**Y** si sigue fallando, el pedido queda visible como "Nuevo pedido pagado" en la aplicación del comerciante y se registra la falla para su seguimiento.
+
+### 8. Pedido accesible desde el aviso
+**Dado** que el comerciante recibió el aviso,
+**cuando** lo abre,
+**entonces** puede consultar o confirmar el pedido en la aplicación (por ejemplo, mediante un enlace incluido en el mensaje).
+**Y** el aviso no sustituye el registro del pedido en el sistema.
+
+### 9. Mensaje comprensible
+**Dado** que el comerciante puede tener poca experiencia con tecnología,
+**cuando** lee el mensaje,
+**entonces** el texto está en español claro, es breve y tiene un formato ordenado (una línea por producto).
+
+### 10. Registro de envíos
+**Dado** que se envió un aviso,
+**cuando** se consulta el historial,
+**entonces** queda registrado el pedido, el comerciante destinatario, la fecha y hora de envío y el estado (enviado, entregado o fallido).

@@ -1,0 +1,71 @@
+## Historia de usuario
+
+Como comerciante, quiero rechazar mi parte de un pedido cuando ya no tengo el producto, para que al cliente se le devuelva solo lo que corresponde a mi puesto.
+
+## Criterios de aceptación
+
+### 1. Opción de rechazo disponible
+**Dado** que el comerciante recibió un pedido pagado que incluye productos de su puesto y aún no lo ha marcado como listo o entregado,
+**cuando** abre el detalle del pedido,
+**entonces** ve únicamente los productos de su puesto y la opción "Rechazar mi parte".
+
+### 2. Alcance del rechazo
+**Dado** que el pedido incluye productos de varios puestos,
+**cuando** el comerciante rechaza su parte,
+**entonces** solo se anulan los productos de su puesto.
+**Y** las partes de los demás puestos permanecen activas y no se ven afectadas.
+
+### 3. Rechazo total o parcial
+**Dado** que el comerciante no cuenta con uno o más productos de su parte,
+**cuando** rechaza,
+**entonces** puede rechazar toda su parte o solo los productos específicos que no tiene, y conserva los demás.
+
+### 4. Motivo del rechazo
+**Dado** que el comerciante inicia el rechazo,
+**cuando** confirma la acción,
+**entonces** debe seleccionar un motivo (por ejemplo: "producto agotado", "no puedo cumplir a tiempo", "otro"), y se le pide confirmación antes de aplicar el cambio.
+
+### 5. Cálculo del reembolso
+**Dado** que el comerciante rechazó su parte,
+**cuando** el sistema procesa el rechazo,
+**entonces** calcula el reembolso como la suma exacta de los productos rechazados de ese puesto.
+**Y** no incluye montos de otros puestos.
+**Y** el costo de delivery solo se reembolsa si todo el pedido queda cancelado o si ya no corresponde cobrarlo, según la regla del negocio definida.
+
+### 6. Devolución al cliente
+**Dado** que se calculó el reembolso,
+**cuando** el sistema lo procesa,
+**entonces** se devuelve el monto al cliente por el mismo medio de pago utilizado (Yape o Plin).
+**Y** el reembolso se registra una sola vez, sin duplicados, aunque el comerciante repita la acción.
+
+### 7. Notificación al cliente
+**Dado** que el rechazo se aplicó,
+**cuando** el sistema lo registra,
+**entonces** se notifica al cliente de inmediato indicando qué productos fueron rechazados, el motivo, el monto devuelto y el nuevo total del pedido.
+
+### 8. Actualización del pedido
+**Dado** que el pedido tiene una parte rechazada,
+**cuando** se consulta su estado,
+**entonces** el pedido muestra los productos rechazados como "No disponible", el total ajustado y el estado de las demás partes.
+**Y** si todas las partes son rechazadas, el pedido pasa a estado "Cancelado".
+
+### 9. Restricciones
+**Dado** que la parte del pedido ya fue marcada como lista o entregada,
+**cuando** el comerciante intenta rechazarla,
+**entonces** el sistema no lo permite e indica el motivo.
+**Y** un comerciante solo puede rechazar productos de su propio puesto.
+
+### 10. Actualización del inventario
+**Dado** que el rechazo se debe a falta de producto,
+**cuando** el comerciante confirma el motivo "producto agotado",
+**entonces** el sistema ofrece marcar ese producto como agotado en su catálogo para evitar nuevos pedidos.
+
+### 11. Trazabilidad
+**Dado** que se realizó un rechazo,
+**cuando** se consulta el historial,
+**entonces** queda registrado el pedido, el puesto, los productos, el motivo, el monto reembolsado, y la fecha y hora de la acción.
+
+### 12. Fallos en el reembolso
+**Dado** que el reembolso falla,
+**cuando** el sistema lo detecta,
+**entonces** reintenta automáticamente y, si no se resuelve, lo deja marcado como "Pendiente de reembolso" para su atención, y el cliente es informado.

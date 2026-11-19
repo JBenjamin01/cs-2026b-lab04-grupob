@@ -1,0 +1,70 @@
+## Historia de usuario
+
+Como usuario, quiero que la aplicación sea moderna, rápida e intuitiva.
+
+## Nota previa
+
+Esta historia está redactada con términos subjetivos ("moderna", "rápida", "intuitiva"). Para que sea verificable, los criterios siguientes los traducen a condiciones medibles. Los valores numéricos son propuestas que el equipo y el Product Owner deben validar.
+
+## Criterios de aceptación
+
+### Moderna
+
+**1. Diseño visual consistente**
+**Dado** que el usuario navega por cualquier pantalla,
+**cuando** observa los elementos de la interfaz,
+**entonces** se usan la misma paleta de colores, tipografía, iconografía y componentes (botones, formularios, mensajes) definidos en una guía de estilo.
+
+**2. Adaptación a distintos dispositivos**
+**Dado** que el usuario accede desde un celular, tableta o computadora,
+**cuando** abre la aplicación,
+**entonces** la interfaz se adapta al tamaño de pantalla sin desplazamiento horizontal ni elementos cortados.
+
+**3. Compatibilidad actual**
+**Dado** que el usuario utiliza una versión reciente de un navegador o sistema operativo soportado (por ejemplo, las dos últimas versiones de Chrome, Safari, Firefox y Edge),
+**cuando** usa la aplicación,
+**entonces** todas las funciones operan correctamente.
+
+**4. Accesibilidad básica**
+**Dado** que el usuario tiene necesidades de accesibilidad,
+**cuando** usa la aplicación,
+**entonces** cumple como mínimo con el nivel AA de WCAG 2.1 (contraste, tamaño de texto, etiquetas, navegación por teclado).
+
+### Rápida
+
+**5. Tiempo de carga inicial**
+**Dado** que el usuario abre la aplicación con una conexión móvil estándar (4G),
+**cuando** se carga la pantalla principal,
+**entonces** el contenido principal es visible en menos de 3 segundos en el 95 % de los casos.
+
+**6. Tiempo de respuesta de las acciones**
+**Dado** que el usuario realiza una acción común (buscar, agregar, guardar, navegar),
+**cuando** envía la acción,
+**entonces** el sistema responde en menos de 1 segundo, o muestra un indicador de progreso si tarda más.
+
+**7. Rendimiento bajo carga**
+**Dado** que hay un número de usuarios concurrentes esperado en hora pico (a definir),
+**cuando** los usuarios operan simultáneamente,
+**entonces** los tiempos de los criterios 5 y 6 se mantienen.
+
+### Intuitiva
+
+**8. Tareas principales sin ayuda**
+**Dado** que un usuario nuevo realiza las tareas principales (por ejemplo, registrarse, buscar y completar una operación) por primera vez,
+**cuando** se le prueba sin capacitación ni instrucciones,
+**entonces** al menos el 90 % de los participantes en una prueba de usabilidad con un mínimo de 5 usuarios completa cada tarea sin ayuda.
+
+**9. Navegación clara**
+**Dado** que el usuario está en cualquier pantalla,
+**cuando** quiere ir a una sección principal,
+**entonces** puede hacerlo en un máximo de 3 toques o clics desde cualquier punto de la aplicación, y siempre sabe en qué sección se encuentra.
+
+**10. Mensajes y errores comprensibles**
+**Dado** que el usuario comete un error o falta información,
+**cuando** el sistema lo detecta,
+**entonces** muestra un mensaje en lenguaje claro que indica qué ocurrió y cómo corregirlo, sin términos técnicos.
+
+**11. Satisfacción del usuario**
+**Dado** que se realizó una prueba de usabilidad o una encuesta,
+**cuando** se evalúan los resultados,
+**entonces** la puntuación en la escala SUS es de al menos 80 puntos, o la satisfacción promedio es de 4 sobre 5 o más.
