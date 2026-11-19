@@ -1,0 +1,4 @@
+{"resultados": [
+ {"entrada": "platano isleño", "producto": "Plátano de isla", "confianza": "media"},
+ {"entrada": "zanahorias", "producto": "Zanahoria", "confianza": "alta"},
+ {"entrada": "chuño negro", "producto": "Chuño", "confianza": "media"}]}

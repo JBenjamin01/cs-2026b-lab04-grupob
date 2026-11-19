@@ -1,0 +1,15 @@
+Aquí tienes los nombres normalizados:
+
+| Escrito por el comerciante | Normalizado |
+|---|---|
+| papa huayro | Papa huayro |
+| maracuyá | Maracuyá |
+| carne de res | Carne de res |
+
+Los tres nombres ya estaban bien escritos, así que solo se unificó la capitalización (primera letra en mayúscula). "Huayro" es una variedad de papa peruana y "maracuyá" ya lleva su tilde correcta.
+
+En formato JSON:
+
+```json
+["Papa huayro", "Maracuyá", "Carne de res"]
+```

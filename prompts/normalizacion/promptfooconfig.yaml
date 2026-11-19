@@ -1,0 +1,43 @@
+# Tarea B del caso 7 (Lab 09, E4): normalizar nombres de productos escritos por comerciantes.
+# Ejecutar desde esta carpeta:  npx promptfoo@0.118.0 eval --no-cache -o resultados.json
+description: "San Camilo en Línea: asignar cada nombre escrito por un comerciante a un producto del catálogo"
+
+prompts:
+  - file://v1.txt
+  - file://v2.txt
+  - file://v3.txt
+
+providers:
+  - id: file://../proveedor_grabado.py
+    label: asistente-grabado
+    config: {grabaciones: normalizacion/grabaciones}
+
+defaultTest:
+  vars:
+    catalogo: file://catalogo.txt
+  assert:
+    - type: is-json                       # B1: JSON válido que cumple el contrato
+      value: file://esquema.json
+      metric: B1_contrato_json
+    - type: javascript                    # B2 (aserción clave del caso 7): catálogo o "desconocido"
+      metric: B2_catalogo_o_desconocido
+      value: |
+        let o; try { o = JSON.parse(output); } catch (e) { return false; }
+        const validos = context.vars.catalogo.split('\n').map(x => x.trim()).filter(Boolean).concat(['desconocido']);
+        return (o.resultados || []).length > 0 && o.resultados.every(r => validos.includes(r.producto));
+    - type: javascript                    # B3: una respuesta por entrada, en el mismo orden y sin reescribirla
+      metric: B3_mismas_entradas
+      value: |
+        let o; try { o = JSON.parse(output); } catch (e) { return false; }
+        const entradas = JSON.parse(context.vars.entradas);
+        const r = o.resultados || [];
+        return r.length === entradas.length && r.every((x, i) => x.entrada === entradas[i]);
+    - type: javascript                    # B4: cada entrada se asigna a un producto aceptable
+      metric: B4_asignacion_correcta
+      value: |
+        let o; try { o = JSON.parse(output); } catch (e) { return false; }
+        const esperado = JSON.parse(context.vars.esperado);
+        const r = o.resultados || [];
+        return r.length === esperado.length && r.every((x, i) => esperado[i].includes(x.producto));
+
+tests: file://casos.yaml

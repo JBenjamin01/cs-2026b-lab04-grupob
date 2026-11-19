@@ -1,0 +1,1 @@
+Normaliza estos nombres de productos que escribieron los comerciantes: {{entradas}}
