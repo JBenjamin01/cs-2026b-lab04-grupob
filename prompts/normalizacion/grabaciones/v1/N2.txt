@@ -1,0 +1,18 @@
+Aquí tienes los nombres normalizados:
+
+| Escrito por el comerciante | Normalizado |
+|---|---|
+| TOMATES | Tomate |
+| choclos | Choclo |
+| cebolla roja x kg | Cebolla roja (por kg) |
+
+Criterios aplicados:
+- Capitalización uniforme (solo la primera letra en mayúscula).
+- Nombre en singular.
+- La unidad de venta ("x kg") se separa del nombre del producto.
+
+En formato JSON:
+
+```json
+["Tomate", "Choclo", "Cebolla roja"]
+```

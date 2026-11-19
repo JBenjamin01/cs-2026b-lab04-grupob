@@ -1,0 +1,18 @@
+Aquí tienes los nombres normalizados:
+
+| Escrito por el comerciante | Normalizado |
+|---|---|
+| platano isleño | Plátano isleño |
+| zanahorias | Zanahoria |
+| chuño negro | Chuño negro |
+
+Criterios aplicados:
+- Se añadió la tilde en "plátano".
+- Nombres en singular y con la primera letra en mayúscula.
+- "Isleño" (variedad de plátano) y "chuño negro" (papa deshidratada andina) se conservan porque son variedades o tipos específicos.
+
+En formato JSON:
+
+```json
+["Plátano isleño", "Zanahoria", "Chuño negro"]
+```

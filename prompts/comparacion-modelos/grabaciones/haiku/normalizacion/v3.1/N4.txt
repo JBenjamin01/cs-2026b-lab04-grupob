@@ -1,0 +1,1 @@
+{"resultados": [{"entrada": "papa huayro", "producto": "desconocido", "confianza": "baja"}, {"entrada": "maracuyá", "producto": "desconocido", "confianza": "baja"}, {"entrada": "carne de res", "producto": "desconocido", "confianza": "baja"}]}

@@ -1,0 +1,18 @@
+Aquí tienes los nombres normalizados:
+
+| Escrito por el comerciante | Normalizado |
+|---|---|
+| paltita fuerte | Palta fuerte |
+| aji amarillo | Ají amarillo |
+| limones | Limón |
+
+Criterios aplicados:
+- Se quitó el diminutivo ("paltita" pasa a "palta"). "Fuerte" es una variedad de palta, por eso se conserva.
+- Se añadió la tilde en "ají".
+- Nombres en singular y con la primera letra en mayúscula.
+
+En formato JSON:
+
+```json
+["Palta fuerte", "Ají amarillo", "Limón"]
+```

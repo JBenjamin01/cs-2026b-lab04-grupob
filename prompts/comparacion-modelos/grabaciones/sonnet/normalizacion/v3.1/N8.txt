@@ -1,0 +1,4 @@
+{"resultados": [
+ {"entrada": "", "producto": "desconocido", "confianza": "baja"},
+ {"entrada": "????", "producto": "desconocido", "confianza": "baja"},
+ {"entrada": "asdfgh", "producto": "desconocido", "confianza": "baja"}]}

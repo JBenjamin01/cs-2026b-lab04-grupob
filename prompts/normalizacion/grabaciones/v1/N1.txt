@@ -1,0 +1,14 @@
+Aquí tienes los nombres normalizados:
+
+| Escrito por el comerciante | Normalizado |
+|---|---|
+| papa amarila | Papa amarilla |
+| keso paria | Queso paria |
+| rokoto | Rocoto |
+
+Notas:
+- "Papa amarilla" es una variedad de papa peruana muy usada en la cocina.
+- "Queso paria" es un queso fresco andino, típico de Arequipa y la sierra sur del Perú.
+- "Rocoto" es un ají picante de la zona andina (también se escribe "locoto" en Bolivia).
+
+Si quieres, puedo devolverlos en formato JSON o en una lista simple.

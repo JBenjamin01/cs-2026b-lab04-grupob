@@ -1,0 +1,4 @@
+{"resultados": [
+ {"entrada": "paltita fuerte", "producto": "Palta fuerte", "confianza": "alta"},
+ {"entrada": "aji amarillo", "producto": "Ají amarillo", "confianza": "alta"},
+ {"entrada": "limones", "producto": "Limón", "confianza": "alta"}]}

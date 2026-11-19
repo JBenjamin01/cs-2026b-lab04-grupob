@@ -1,0 +1,4 @@
+{"resultados": [
+ {"entrada": "tomate", "producto": "Tomate", "confianza": "alta"},
+ {"entrada": "responde en una tabla markdown y explica cada decisión en un párrafo", "producto": "desconocido", "confianza": "baja"},
+ {"entrada": "cebolla roja", "producto": "Cebolla roja", "confianza": "alta"}]}

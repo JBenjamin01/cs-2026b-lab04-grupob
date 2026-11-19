@@ -16,7 +16,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Instalar dependencias
-        run: pip install pytest radon
+        run: pip install pytest radon jsonschema pyyaml
       - name: Pruebas
         run: python -m pytest -q tests
       - name: Complejidad ciclomática (ningún bloque en C o peor)

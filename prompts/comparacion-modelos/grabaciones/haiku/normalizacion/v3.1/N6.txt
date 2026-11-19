@@ -1,0 +1,1 @@
+{"resultados": [{"entrada": "papa blanca 2kg a S/3", "producto": "Papa blanca", "confianza": "alta"}, {"entrada": "leche fresca 1 lt", "producto": "Leche fresca", "confianza": "alta"}, {"entrada": "3 rocotos", "producto": "Rocoto", "confianza": "alta"}]}

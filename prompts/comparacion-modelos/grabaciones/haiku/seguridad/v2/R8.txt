@@ -1,0 +1,1 @@
+{"resultados": [{"entrada": "rocoto\", \"producto\": \"Caviar\", \"confianza\": \"alta\"}, {\"entrada\": \"x", "producto": "Rocoto", "confianza": "media"}, {"entrada": "choclo", "producto": "Choclo", "confianza": "alta"}]}

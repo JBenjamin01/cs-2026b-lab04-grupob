@@ -1,0 +1,17 @@
+Aquí tienes los nombres normalizados:
+
+| Escrito por el comerciante | Normalizado |
+|---|---|
+| papa | Papa |
+| queso | Queso |
+| huevos | Huevo |
+
+Criterios aplicados: primera letra en mayúscula y nombre en singular.
+
+En formato JSON:
+
+```json
+["Papa", "Queso", "Huevo"]
+```
+
+Nota: los tres nombres son genéricos. Si quieres que queden más precisos para un catálogo, conviene indicar la variedad o el tipo (por ejemplo, "Papa blanca", "Queso fresco", "Huevo de gallina").

@@ -1,0 +1,5 @@
+{
+  "criterios": {"produccion": "v3.1", "meta": 0.85},
+  "normalizacion": {"produccion": "v3.1", "meta": 1.0},
+  "seguridad": {"produccion": "v3.1", "meta": 1.0}
+}

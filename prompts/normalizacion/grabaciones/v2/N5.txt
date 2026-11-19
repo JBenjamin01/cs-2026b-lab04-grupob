@@ -1,0 +1,1 @@
+{"resultados": [{"entrada": "papa", "producto": "Papa blanca", "confianza": "baja"}, {"entrada": "queso", "producto": "Queso fresco", "confianza": "baja"}, {"entrada": "huevos", "producto": "Huevo de granja", "confianza": "alta"}]}

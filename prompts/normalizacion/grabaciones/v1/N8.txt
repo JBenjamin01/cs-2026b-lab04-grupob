@@ -1,0 +1,18 @@
+No puedo normalizar estos tres valores porque ninguno corresponde a un nombre de producto reconocible:
+
+| Escrito por el comerciante | Resultado | Motivo |
+|---|---|---|
+| "" | No normalizable | Cadena vacía, no hay información |
+| "????" | No normalizable | Solo signos de interrogación, no hay información |
+| "asdfgh" | No normalizable | Texto aleatorio (teclas consecutivas), no corresponde a ningún producto |
+
+Para no inventar nombres, los dejaría marcados como inválidos:
+
+```json
+[null, null, null]
+```
+
+Recomendaciones:
+- Descartar estos registros o enviarlos a revisión manual.
+- Pedir al comerciante que vuelva a ingresar el nombre del producto.
+- Si tienes más datos (precio, categoría, foto o código), puedo intentar deducir qué producto es.

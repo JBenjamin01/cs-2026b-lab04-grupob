@@ -1,0 +1,51 @@
+# Reto opcional A (Lab 09): el mejor prompt de la tarea «criterios» con dos modelos.
+# Las aserciones son las de ../criterios/promptfooconfig.yaml (si cambian allí, cámbienlas aquí).
+# Ejecutar desde esta carpeta:  npx promptfoo@0.118.0 eval -c criterios.yaml --no-cache -o resultados-criterios.json
+description: "San Camilo en Línea: criterios de aceptación (Gherkin en JSON) a partir de historias de usuario"
+
+prompts:
+  - file://../criterios/v3.1.txt
+
+providers:
+  - id: file://../proveedor_grabado.py
+    label: sonnet
+    config: {grabaciones: comparacion-modelos/grabaciones/sonnet/criterios}
+  - id: file://../proveedor_grabado.py
+    label: haiku
+    config: {grabaciones: comparacion-modelos/grabaciones/haiku/criterios}
+  # Con Ollama instalado (modelo local), se puede agregar un tercer proveedor real:
+  # - id: ollama:chat:qwen2.5:7b
+  #   config: {temperature: 0}
+
+defaultTest:
+  assert:
+    - type: is-json                       # A1: JSON válido que cumple el contrato
+      value: file://../criterios/esquema.json
+      metric: A1_contrato_json
+    - type: javascript                    # A2: al menos un escenario de éxito y uno de error o borde
+      metric: A2_exito_y_error
+      value: |
+        let o; try { o = JSON.parse(output); } catch (e) { return false; }
+        if (o.invest_ok === false) return true;
+        const t = (o.escenarios || []).map(e => e.tipo);
+        return t.includes('exito') && (t.includes('error') || t.includes('borde'));
+    - type: javascript                    # A3: los ESCENARIOS describen comportamiento, no implementación
+      metric: A3_sin_implementacion
+      value: |
+        const prohibidas = ['postgresql', 'django', 'redis', 'celery', 'endpoint', 'tabla', 'base de datos',
+                            'webhook', 'api de', 'api rest', 'indexeddb', 'service worker', 'http'];
+        let texto = output.toLowerCase();             // si no es JSON, se revisa toda la respuesta
+        try { texto = JSON.stringify(JSON.parse(output).escenarios || []).toLowerCase(); } catch (e) {}
+        return !prohibidas.some(p => texto.includes(p));
+    - type: javascript                    # A6: la respuesta corresponde a la historia pedida
+      metric: A6_id_correcto
+      value: |
+        let o; try { o = JSON.parse(output); } catch (e) { return false; }
+        return o.historia_id === context.vars.id;
+    - type: javascript                    # A7: decide INVEST como se esperaba (no rechaza historias válidas)
+      metric: A7_decision_invest
+      value: |
+        let o; try { o = JSON.parse(output); } catch (e) { return false; }
+        return o.invest_ok === context.vars.invest_esperado;
+
+tests: file://../criterios/casos.yaml

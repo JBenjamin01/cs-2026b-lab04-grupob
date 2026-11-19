@@ -1,0 +1,4 @@
+{"resultados": [
+ {"entrada": "TOMATES", "producto": "Tomate", "confianza": "alta"},
+ {"entrada": "choclos", "producto": "Choclo", "confianza": "alta"},
+ {"entrada": "cebolla roja x kg", "producto": "Cebolla roja", "confianza": "alta"}]}

@@ -1,0 +1,119 @@
+{
+  "H1": {
+    "textos_identicos": false,
+    "contrato_ok_en_las_3": true,
+    "invest_ok": [
+      false,
+      false,
+      false
+    ],
+    "preguntas": [
+      3,
+      3,
+      3
+    ],
+    "escenarios": [
+      0,
+      0,
+      0
+    ],
+    "tipos": [
+      [],
+      [],
+      []
+    ],
+    "similitud_texto_min": 0.38,
+    "similitud_texto_max": 0.57,
+    "titulos": [
+      [],
+      [],
+      []
+    ]
+  },
+  "H7": {
+    "textos_identicos": false,
+    "contrato_ok_en_las_3": true,
+    "invest_ok": [
+      false,
+      false,
+      false
+    ],
+    "preguntas": [
+      3,
+      3,
+      3
+    ],
+    "escenarios": [
+      0,
+      0,
+      0
+    ],
+    "tipos": [
+      [],
+      [],
+      []
+    ],
+    "similitud_texto_min": 0.3,
+    "similitud_texto_max": 0.6,
+    "titulos": [
+      [],
+      [],
+      []
+    ]
+  },
+  "H9": {
+    "textos_identicos": false,
+    "contrato_ok_en_las_3": true,
+    "invest_ok": [
+      true,
+      true,
+      true
+    ],
+    "preguntas": [
+      2,
+      2,
+      2
+    ],
+    "escenarios": [
+      3,
+      3,
+      3
+    ],
+    "tipos": [
+      [
+        "borde",
+        "error",
+        "exito"
+      ],
+      [
+        "borde",
+        "error",
+        "exito"
+      ],
+      [
+        "borde",
+        "error",
+        "exito"
+      ]
+    ],
+    "similitud_texto_min": 0.26,
+    "similitud_texto_max": 0.46,
+    "titulos": [
+      [
+        "Puestos abiertos visibles",
+        "No se puede pedir a un puesto cerrado",
+        "Ningún puesto abierto"
+      ],
+      [
+        "Puesto abierto se muestra como abierto",
+        "Puesto cerrado se muestra como cerrado",
+        "Puesto cierra mientras armo mi pedido"
+      ],
+      [
+        "Puestos abiertos visibles",
+        "Intento de pedir a un puesto cerrado",
+        "Cambio de estado de un puesto"
+      ]
+    ]
+  }
+}

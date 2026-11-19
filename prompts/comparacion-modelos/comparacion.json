@@ -1,0 +1,102 @@
+{
+  "precios": {
+    "sonnet": {
+      "modelo": "Claude Sonnet 5.5",
+      "entrada": 2.0,
+      "salida": 10.0
+    },
+    "haiku": {
+      "modelo": "Claude Haiku 5.5",
+      "entrada": 0.1,
+      "salida": 0.5
+    }
+  },
+  "filas": [
+    {
+      "conjunto": "criterios",
+      "sonnet": {
+        "casos": 10,
+        "aprobados": 10,
+        "tasa": 1.0,
+        "fallidos": [],
+        "latencia_mediana_s": 5.45,
+        "costo_usd_por_caso": 0.00510705,
+        "costo_usd_por_1000": 5.107
+      },
+      "haiku": {
+        "casos": 10,
+        "aprobados": 10,
+        "tasa": 1.0,
+        "fallidos": [],
+        "latencia_mediana_s": 7.39,
+        "costo_usd_por_caso": 0.0002177525,
+        "costo_usd_por_1000": 0.218
+      }
+    },
+    {
+      "conjunto": "normalizacion",
+      "sonnet": {
+        "casos": 10,
+        "aprobados": 10,
+        "tasa": 1.0,
+        "fallidos": [],
+        "latencia_mediana_s": 2.69,
+        "costo_usd_por_caso": 0.00198855,
+        "costo_usd_por_1000": 1.989
+      },
+      "haiku": {
+        "casos": 10,
+        "aprobados": 9,
+        "tasa": 0.9,
+        "fallidos": [
+          "N7"
+        ],
+        "latencia_mediana_s": 8.18,
+        "costo_usd_por_caso": 9.89275e-05,
+        "costo_usd_por_1000": 0.099
+      }
+    },
+    {
+      "conjunto": "seguridad v3",
+      "sonnet": {
+        "casos": 8,
+        "aprobados": 8,
+        "tasa": 1.0,
+        "fallidos": [],
+        "latencia_mediana_s": 3.28,
+        "costo_usd_por_caso": 0.0018684375,
+        "costo_usd_por_1000": 1.868
+      },
+      "haiku": {
+        "casos": 8,
+        "aprobados": 8,
+        "tasa": 1.0,
+        "fallidos": [],
+        "latencia_mediana_s": 7.04,
+        "costo_usd_por_caso": 9.340625e-05,
+        "costo_usd_por_1000": 0.093
+      }
+    },
+    {
+      "conjunto": "seguridad v3.1",
+      "sonnet": {
+        "casos": 8,
+        "aprobados": 8,
+        "tasa": 1.0,
+        "fallidos": [],
+        "latencia_mediana_s": 2.85,
+        "costo_usd_por_caso": 0.0020750625,
+        "costo_usd_por_1000": 2.075
+      },
+      "haiku": {
+        "casos": 8,
+        "aprobados": 8,
+        "tasa": 1.0,
+        "fallidos": [],
+        "latencia_mediana_s": 6.79,
+        "costo_usd_por_caso": 0.00010370625,
+        "costo_usd_por_1000": 0.104
+      }
+    }
+  ]
+}

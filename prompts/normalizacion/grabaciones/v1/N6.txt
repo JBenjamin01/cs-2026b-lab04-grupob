@@ -1,0 +1,22 @@
+Aquí tienes los nombres normalizados, separando el nombre del producto de la cantidad y el precio:
+
+| Escrito por el comerciante | Nombre normalizado | Cantidad / presentación | Precio |
+|---|---|---|---|
+| papa blanca 2kg a S/3 | Papa blanca | 2 kg | S/ 3 |
+| leche fresca 1 lt | Leche fresca | 1 L | - |
+| 3 rocotos | Rocoto | 3 unidades | - |
+
+En formato JSON:
+
+```json
+[
+  { "nombre": "Papa blanca", "cantidad": 2, "unidad": "kg", "precio": 3.00, "moneda": "PEN" },
+  { "nombre": "Leche fresca", "cantidad": 1, "unidad": "L", "precio": null, "moneda": null },
+  { "nombre": "Rocoto", "cantidad": 3, "unidad": "unidad", "precio": null, "moneda": null }
+]
+```
+
+Notas:
+- "S/3" se interpretó como 3 soles. No queda claro si ese precio corresponde a los 2 kg completos o a cada kg. Conviene confirmarlo con el comerciante.
+- "rocotos" se corrigió a singular y el "3" pasó a ser la cantidad.
+- "lt" se estandarizó como "L".
