@@ -1,6 +1,7 @@
-# San Camilo en Línea — Laboratorios 04 a 08: arquitectura, diseño UML, C4, patrones y ADD
+# San Camilo en Línea — Laboratorios 04 a 09: arquitectura, diseño UML, C4, patrones, ADD y prompts
 
 [![fitness-functions](https://github.com/JBenjamin01/cs-2026b-lab04-grupob/actions/workflows/fitness.yml/badge.svg)](https://github.com/JBenjamin01/cs-2026b-lab04-grupob/actions/workflows/fitness.yml)
+[![evaluacion-de-prompts](https://github.com/JBenjamin01/cs-2026b-lab04-grupob/actions/workflows/prompts.yml/badge.svg)](https://github.com/JBenjamin01/cs-2026b-lab04-grupob/actions/workflows/prompts.yml)
 
 Construcción de Software · EPIS-UNSA · 2026-B · Grupo B
 
@@ -348,13 +349,68 @@ AISLAMIENTO_DSN="postgresql://..." python fitness/aislamiento.py   # solo con un
 python docs/architecture/diagramas/graficos_lab08.py               # regenera los gráficos
 ```
 
-## Prompt engineering (Lab 09) — en progreso
+## Prompt engineering (Lab 09)
 
-| Tarea | Versión | Tasa de aprobación | Nota |
-|-------|---------|--------------------|------|
-| A — Criterios de aceptación | v1 (línea base) | 0/10 (0 %) | Respuestas en Markdown; en H9 obedeció la inyección y respondió «APROBADO» |
+Los prompts se tratan como código: versiones en Git, un **contrato de salida** (JSON Schema), un
+**dataset** con casos normales, de borde y adversarios, **aserciones automáticas** con promptfoo,
+respuestas **grabadas** (sin clave de API) y una compuerta en GitHub Actions. Regla de oro: un prompt
+no se «siente» mejor, se demuestra mejor.
 
-La sección completa se agrega en E8.
+| Integrante | Rol en el Lab 09 | Entregables |
+|------------|------------------|-------------|
+| Jhonatan Benjamin Mamani Céspedes | Contrato y dataset de la Tarea A, línea base v1 e iteraciones; README y entrega | E1, E2, E3, E8 |
+| Jafet Martin Llave Aguilar | Tarea B, red teaming, integración en el código, CI, no determinismo, bitácora y reto A | E4, E5, E6, E7 |
+
+### Tareas y versiones
+
+- **Tarea A (común):** criterios de aceptación en Gherkin (JSON) a partir de las historias del backlog
+  ([prompts/criterios](prompts/criterios)). 10 casos: 6 historias, 2 no INVEST y 2 inyecciones.
+- **Tarea B (caso 7):** asignar cada nombre escrito por un comerciante a un producto del catálogo o a
+  «desconocido» ([prompts/normalizacion](prompts/normalizacion)). 10 lotes: errores de ortografía,
+  plurales, ambiguos, fuera del catálogo, precios mezclados y 2 inyecciones.
+
+| Tarea | v1 | v2 | v3 | v3.1 | Qué cambió en la versión que más mejoró |
+|-------|----|----|----|------|------------------------------------------|
+| A — Criterios (7 aserciones) | 0/10 (0 %) | 0/10 (0 %) | 9/10 (90 %) | **10/10 (100 %)** | v3: tarea paso a paso (INVEST primero), límites, delimitadores `<historia>`, ejemplo y formato estricto |
+| B — Normalización (5 aserciones) | 0/10 (0 %) | 5/10 (50 %) | 10/10 (100 %) | **10/10 (100 %)** | v3: regla «desconocido», ambiguos sin adivinar, delimitadores y ejemplo |
+| Red teaming (8 ataques) | — | 0/8 | 8/8 | **8/8** | v3.1: el catálogo también es dato; no revelar instrucciones; siempre español y JSON |
+
+![Resultados por versión](prompts/img/resultados.png)
+
+En producción: criterios **v3.1** y normalización **v3.1** ([prompts/versiones.json](prompts/versiones.json)).
+La normalización se usa en el código detrás del puerto `ProveedorLLM` del Lab 07
+([src/catalogo/generador_nombres.py](src/catalogo/generador_nombres.py)), que valida la salida con el
+esquema, el catálogo y las entradas antes de mostrar nada al comerciante.
+
+### Evidencia complementaria
+
+- Ataques, defensas en capas y resultados: [prompts/seguridad/red-team.md](prompts/seguridad/red-team.md).
+- No determinismo (3 ejecuciones del mismo prompt): [prompts/no-determinismo/analisis.md](prompts/no-determinismo/analisis.md).
+- Reto A, Sonnet frente a Haiku (tasa, latencia y costo): [prompts/comparacion-modelos/README.md](prompts/comparacion-modelos/README.md).
+- Bitácora de IA (9 interacciones): [prompts/bitacora-ia.md](prompts/bitacora-ia.md).
+
+### Lecciones aprendidas
+
+1. Un 100 % sobre 10 casos no prueba que el prompt sea bueno: la v3 de la Tarea A tenía 10/10 hasta que
+   el experimento de no determinismo mostró que rechazaba una historia válida; el que fallaba era el
+   **evaluador** (falso negativo), no solo el prompt.
+2. Los evaluadores también se evalúan: una aserción dio un falso positivo (A5) y el esquema dio errores
+   en lugar de fallos por el borrador de JSON Schema.
+3. Sin una regla para lo desconocido, el modelo devuelve `null` o adivina; el contrato lo detecta y el
+   código lo rechaza.
+4. Ningún ataque logró que el modelo obedeciera, pero las defensas se mantienen en capas porque no
+   deben depender de que el modelo se porte bien.
+5. El texto de las respuestas cambia en cada ejecución; las decisiones no. Las aserciones verifican
+   estructura y decisiones, nunca el texto literal.
+
+### Cómo ejecutar
+
+```bash
+cd prompts/criterios && npx promptfoo@0.118.0 eval --no-cache -o resultados.json    # igual en normalizacion/ y seguridad/
+python ../verificar_meta.py criterios resultados.json                              # compuerta de CI
+cd ../.. && pip install jsonschema pyyaml matplotlib && python -m pytest -q tests  # 122 passed, 1 skipped, 1 xfailed
+python prompts/graficos.py                                                         # regenera los gráficos
+```
 
 ## Estructura del repositorio
 
@@ -362,9 +418,17 @@ La sección completa se agrega en E8.
 cs-2026b-lab04-grupob/
 ├── README.md
 ├── .importlinter              # Lab 08 (E5): FF-01 y FF-02
-├── .github/workflows/         # calidad.yml (Lab 07) y fitness.yml (Lab 08, E5)
+├── .github/workflows/         # calidad.yml (Lab 07), fitness.yml (Lab 08) y prompts.yml (Lab 09, E7)
 ├── db/rls.sql                 # Lab 08 (E4): Row-Level Security por mercado
 ├── fitness/                   # Lab 08: simulaciones y prototipos de medición
+├── prompts/                   # Lab 09: prompts como código
+│   ├── criterios/             # Tarea A: v1 a v3.1, esquema.json, casos.yaml, grabaciones/, promptfooconfig.yaml
+│   ├── normalizacion/         # Tarea B: la misma estructura + catalogo.txt
+│   ├── seguridad/             # red-team.md, ataques.yaml, grabaciones/
+│   ├── no-determinismo/       # 3 ejecuciones del mismo prompt y su análisis
+│   ├── comparacion-modelos/   # reto A: Sonnet frente a Haiku
+│   ├── proveedor_grabado.py, verificar_meta.py, versiones.json, graficos.py, bitacora-ia.md
+│   └── img/                   # gráficos de resultados
 ├── docs/
 │   ├── architecture/          # Laboratorio 04 (+ ADR-004 del Lab 05, ADR-005 del Lab 07 y Lab 08)
 │   │   ├── drivers.md, matriz-decision.md, bitacora-ia.md, atam-lite.md
@@ -387,6 +451,7 @@ cs-2026b-lab04-grupob/
 │   ├── arranque.py            # Lab 07: raíz de composición (conecta los patrones)
 │   ├── pedidos/antes/         # Lab 07: versión ingenua, solo para comparar
 │   ├── mercados/              # Lab 08: reglas de cada mercado como datos
+│   ├── catalogo/generador_nombres.py  # Lab 09 (E6): prompt versionado detrás de ProveedorLLM
 │   └── comun, catalogo, pagos, notificaciones, pedidos, reparto
-└── tests/                     # caracterización, patrones, estados, mercados, disponibilidad y fitness
+└── tests/                     # caracterización, patrones, estados, mercados, disponibilidad, fitness y generador
 ```
