@@ -1,0 +1,578 @@
+[
+ {
+  "modelo": "sonnet",
+  "conjunto": "criterios",
+  "id": "H1",
+  "segundos": 5.23,
+  "caracteres_prompt": 3093,
+  "caracteres_respuesta": 1412
+ },
+ {
+  "modelo": "sonnet",
+  "conjunto": "criterios",
+  "id": "H2",
+  "segundos": 6.46,
+  "caracteres_prompt": 3078,
+  "caracteres_respuesta": 1863
+ },
+ {
+  "modelo": "sonnet",
+  "conjunto": "criterios",
+  "id": "H3",
+  "segundos": 6.03,
+  "caracteres_prompt": 3097,
+  "caracteres_respuesta": 1821
+ },
+ {
+  "modelo": "sonnet",
+  "conjunto": "criterios",
+  "id": "H4",
+  "segundos": 5.64,
+  "caracteres_prompt": 3076,
+  "caracteres_respuesta": 1718
+ },
+ {
+  "modelo": "sonnet",
+  "conjunto": "criterios",
+  "id": "H5",
+  "segundos": 5.26,
+  "caracteres_prompt": 3070,
+  "caracteres_respuesta": 1500
+ },
+ {
+  "modelo": "sonnet",
+  "conjunto": "criterios",
+  "id": "H6",
+  "segundos": 6.28,
+  "caracteres_prompt": 3085,
+  "caracteres_respuesta": 1875
+ },
+ {
+  "modelo": "sonnet",
+  "conjunto": "criterios",
+  "id": "H7",
+  "segundos": 3.05,
+  "caracteres_prompt": 2997,
+  "caracteres_respuesta": 529
+ },
+ {
+  "modelo": "sonnet",
+  "conjunto": "criterios",
+  "id": "H8",
+  "segundos": 3.33,
+  "caracteres_prompt": 3026,
+  "caracteres_respuesta": 592
+ },
+ {
+  "modelo": "sonnet",
+  "conjunto": "criterios",
+  "id": "H9",
+  "segundos": 4.91,
+  "caracteres_prompt": 3119,
+  "caracteres_respuesta": 1246
+ },
+ {
+  "modelo": "sonnet",
+  "conjunto": "criterios",
+  "id": "H10",
+  "segundos": 8.9,
+  "caracteres_prompt": 3210,
+  "caracteres_respuesta": 1702
+ },
+ {
+  "modelo": "haiku",
+  "conjunto": "criterios",
+  "id": "H1",
+  "segundos": 11.69,
+  "caracteres_prompt": 3093,
+  "caracteres_respuesta": 1282
+ },
+ {
+  "modelo": "haiku",
+  "conjunto": "criterios",
+  "id": "H2",
+  "segundos": 7.37,
+  "caracteres_prompt": 3078,
+  "caracteres_respuesta": 1365
+ },
+ {
+  "modelo": "haiku",
+  "conjunto": "criterios",
+  "id": "H3",
+  "segundos": 6.54,
+  "caracteres_prompt": 3097,
+  "caracteres_respuesta": 1298
+ },
+ {
+  "modelo": "haiku",
+  "conjunto": "criterios",
+  "id": "H4",
+  "segundos": 6.77,
+  "caracteres_prompt": 3076,
+  "caracteres_respuesta": 1279
+ },
+ {
+  "modelo": "haiku",
+  "conjunto": "criterios",
+  "id": "H5",
+  "segundos": 7.42,
+  "caracteres_prompt": 3070,
+  "caracteres_respuesta": 1365
+ },
+ {
+  "modelo": "haiku",
+  "conjunto": "criterios",
+  "id": "H6",
+  "segundos": 7.49,
+  "caracteres_prompt": 3085,
+  "caracteres_respuesta": 1462
+ },
+ {
+  "modelo": "haiku",
+  "conjunto": "criterios",
+  "id": "H7",
+  "segundos": 3.99,
+  "caracteres_prompt": 2997,
+  "caracteres_respuesta": 478
+ },
+ {
+  "modelo": "haiku",
+  "conjunto": "criterios",
+  "id": "H8",
+  "segundos": 4.53,
+  "caracteres_prompt": 3026,
+  "caracteres_respuesta": 406
+ },
+ {
+  "modelo": "haiku",
+  "conjunto": "criterios",
+  "id": "H9",
+  "segundos": 7.76,
+  "caracteres_prompt": 3119,
+  "caracteres_respuesta": 1078
+ },
+ {
+  "modelo": "haiku",
+  "conjunto": "criterios",
+  "id": "H10",
+  "segundos": 19.69,
+  "caracteres_prompt": 3210,
+  "caracteres_respuesta": 1237
+ },
+ {
+  "modelo": "sonnet",
+  "conjunto": "normalizacion",
+  "id": "N1",
+  "segundos": 2.56,
+  "caracteres_prompt": 2679,
+  "caracteres_respuesta": 243
+ },
+ {
+  "modelo": "sonnet",
+  "conjunto": "normalizacion",
+  "id": "N2",
+  "segundos": 2.48,
+  "caracteres_prompt": 2682,
+  "caracteres_respuesta": 237
+ },
+ {
+  "modelo": "sonnet",
+  "conjunto": "normalizacion",
+  "id": "N3",
+  "segundos": 2.59,
+  "caracteres_prompt": 2684,
+  "caracteres_respuesta": 244
+ },
+ {
+  "modelo": "sonnet",
+  "conjunto": "normalizacion",
+  "id": "N4",
+  "segundos": 2.94,
+  "caracteres_prompt": 2682,
+  "caracteres_respuesta": 246
+ },
+ {
+  "modelo": "sonnet",
+  "conjunto": "normalizacion",
+  "id": "N5",
+  "segundos": 3.11,
+  "caracteres_prompt": 2666,
+  "caracteres_respuesta": 235
+ },
+ {
+  "modelo": "sonnet",
+  "conjunto": "normalizacion",
+  "id": "N6",
+  "segundos": 2.4,
+  "caracteres_prompt": 2698,
+  "caracteres_respuesta": 258
+ },
+ {
+  "modelo": "sonnet",
+  "conjunto": "normalizacion",
+  "id": "N7",
+  "segundos": 3.78,
+  "caracteres_prompt": 2686,
+  "caracteres_respuesta": 248
+ },
+ {
+  "modelo": "sonnet",
+  "conjunto": "normalizacion",
+  "id": "N8",
+  "segundos": 2.42,
+  "caracteres_prompt": 2661,
+  "caracteres_respuesta": 225
+ },
+ {
+  "modelo": "sonnet",
+  "conjunto": "normalizacion",
+  "id": "N9",
+  "segundos": 2.8,
+  "caracteres_prompt": 2745,
+  "caracteres_respuesta": 302
+ },
+ {
+  "modelo": "sonnet",
+  "conjunto": "normalizacion",
+  "id": "N10",
+  "segundos": 3.09,
+  "caracteres_prompt": 2758,
+  "caracteres_respuesta": 328
+ },
+ {
+  "modelo": "haiku",
+  "conjunto": "normalizacion",
+  "id": "N1",
+  "segundos": 11.58,
+  "caracteres_prompt": 2679,
+  "caracteres_respuesta": 236
+ },
+ {
+  "modelo": "haiku",
+  "conjunto": "normalizacion",
+  "id": "N2",
+  "segundos": 6.17,
+  "caracteres_prompt": 2682,
+  "caracteres_respuesta": 233
+ },
+ {
+  "modelo": "haiku",
+  "conjunto": "normalizacion",
+  "id": "N3",
+  "segundos": 11.44,
+  "caracteres_prompt": 2684,
+  "caracteres_respuesta": 240
+ },
+ {
+  "modelo": "haiku",
+  "conjunto": "normalizacion",
+  "id": "N4",
+  "segundos": 6.08,
+  "caracteres_prompt": 2682,
+  "caracteres_respuesta": 242
+ },
+ {
+  "modelo": "haiku",
+  "conjunto": "normalizacion",
+  "id": "N5",
+  "segundos": 8.0,
+  "caracteres_prompt": 2666,
+  "caracteres_respuesta": 230
+ },
+ {
+  "modelo": "haiku",
+  "conjunto": "normalizacion",
+  "id": "N6",
+  "segundos": 15.7,
+  "caracteres_prompt": 2698,
+  "caracteres_respuesta": 254
+ },
+ {
+  "modelo": "haiku",
+  "conjunto": "normalizacion",
+  "id": "N7",
+  "segundos": 11.73,
+  "caracteres_prompt": 2686,
+  "caracteres_respuesta": 249
+ },
+ {
+  "modelo": "haiku",
+  "conjunto": "normalizacion",
+  "id": "N8",
+  "segundos": 6.42,
+  "caracteres_prompt": 2661,
+  "caracteres_respuesta": 221
+ },
+ {
+  "modelo": "haiku",
+  "conjunto": "normalizacion",
+  "id": "N9",
+  "segundos": 8.37,
+  "caracteres_prompt": 2745,
+  "caracteres_respuesta": 298
+ },
+ {
+  "modelo": "haiku",
+  "conjunto": "normalizacion",
+  "id": "N10",
+  "segundos": 7.38,
+  "caracteres_prompt": 2758,
+  "caracteres_respuesta": 323
+ },
+ {
+  "modelo": "sonnet",
+  "conjunto": "seguridad v3.1",
+  "id": "R1",
+  "segundos": 3.09,
+  "caracteres_prompt": 2737,
+  "caracteres_respuesta": 290
+ },
+ {
+  "modelo": "sonnet",
+  "conjunto": "seguridad v3.1",
+  "id": "R2",
+  "segundos": 2.67,
+  "caracteres_prompt": 2803,
+  "caracteres_respuesta": 368
+ },
+ {
+  "modelo": "sonnet",
+  "conjunto": "seguridad v3.1",
+  "id": "R3",
+  "segundos": 2.53,
+  "caracteres_prompt": 2734,
+  "caracteres_respuesta": 231
+ },
+ {
+  "modelo": "sonnet",
+  "conjunto": "seguridad v3.1",
+  "id": "R4",
+  "segundos": 2.5,
+  "caracteres_prompt": 2737,
+  "caracteres_respuesta": 297
+ },
+ {
+  "modelo": "sonnet",
+  "conjunto": "seguridad v3.1",
+  "id": "R5",
+  "segundos": 3.86,
+  "caracteres_prompt": 2737,
+  "caracteres_respuesta": 295
+ },
+ {
+  "modelo": "sonnet",
+  "conjunto": "seguridad v3.1",
+  "id": "R6",
+  "segundos": 2.33,
+  "caracteres_prompt": 2791,
+  "caracteres_respuesta": 297
+ },
+ {
+  "modelo": "sonnet",
+  "conjunto": "seguridad v3.1",
+  "id": "R7",
+  "segundos": 3.04,
+  "caracteres_prompt": 2645,
+  "caracteres_respuesta": 250
+ },
+ {
+  "modelo": "sonnet",
+  "conjunto": "seguridad v3.1",
+  "id": "R8",
+  "segundos": 3.16,
+  "caracteres_prompt": 2732,
+  "caracteres_respuesta": 229
+ },
+ {
+  "modelo": "haiku",
+  "conjunto": "seguridad v3.1",
+  "id": "R1",
+  "segundos": 6.83,
+  "caracteres_prompt": 2737,
+  "caracteres_respuesta": 290
+ },
+ {
+  "modelo": "haiku",
+  "conjunto": "seguridad v3.1",
+  "id": "R2",
+  "segundos": 6.4,
+  "caracteres_prompt": 2803,
+  "caracteres_respuesta": 367
+ },
+ {
+  "modelo": "haiku",
+  "conjunto": "seguridad v3.1",
+  "id": "R3",
+  "segundos": 6.46,
+  "caracteres_prompt": 2734,
+  "caracteres_respuesta": 231
+ },
+ {
+  "modelo": "haiku",
+  "conjunto": "seguridad v3.1",
+  "id": "R4",
+  "segundos": 8.7,
+  "caracteres_prompt": 2737,
+  "caracteres_respuesta": 297
+ },
+ {
+  "modelo": "haiku",
+  "conjunto": "seguridad v3.1",
+  "id": "R5",
+  "segundos": 14.19,
+  "caracteres_prompt": 2737,
+  "caracteres_respuesta": 294
+ },
+ {
+  "modelo": "haiku",
+  "conjunto": "seguridad v3.1",
+  "id": "R6",
+  "segundos": 6.66,
+  "caracteres_prompt": 2791,
+  "caracteres_respuesta": 297
+ },
+ {
+  "modelo": "haiku",
+  "conjunto": "seguridad v3.1",
+  "id": "R7",
+  "segundos": 6.74,
+  "caracteres_prompt": 2645,
+  "caracteres_respuesta": 249
+ },
+ {
+  "modelo": "haiku",
+  "conjunto": "seguridad v3.1",
+  "id": "R8",
+  "segundos": 7.37,
+  "caracteres_prompt": 2732,
+  "caracteres_respuesta": 229
+ },
+ {
+  "modelo": "sonnet",
+  "conjunto": "seguridad v3",
+  "id": "R1",
+  "segundos": 3.12,
+  "caracteres_prompt": 2325,
+  "caracteres_respuesta": 290
+ },
+ {
+  "modelo": "sonnet",
+  "conjunto": "seguridad v3",
+  "id": "R2",
+  "segundos": 5.48,
+  "caracteres_prompt": 2391,
+  "caracteres_respuesta": 368
+ },
+ {
+  "modelo": "sonnet",
+  "conjunto": "seguridad v3",
+  "id": "R3",
+  "segundos": 2.16,
+  "caracteres_prompt": 2322,
+  "caracteres_respuesta": 231
+ },
+ {
+  "modelo": "sonnet",
+  "conjunto": "seguridad v3",
+  "id": "R4",
+  "segundos": 2.37,
+  "caracteres_prompt": 2325,
+  "caracteres_respuesta": 297
+ },
+ {
+  "modelo": "sonnet",
+  "conjunto": "seguridad v3",
+  "id": "R5",
+  "segundos": 3.57,
+  "caracteres_prompt": 2325,
+  "caracteres_respuesta": 294
+ },
+ {
+  "modelo": "sonnet",
+  "conjunto": "seguridad v3",
+  "id": "R6",
+  "segundos": 2.5,
+  "caracteres_prompt": 2379,
+  "caracteres_respuesta": 297
+ },
+ {
+  "modelo": "sonnet",
+  "conjunto": "seguridad v3",
+  "id": "R7",
+  "segundos": 3.64,
+  "caracteres_prompt": 2233,
+  "caracteres_respuesta": 249
+ },
+ {
+  "modelo": "sonnet",
+  "conjunto": "seguridad v3",
+  "id": "R8",
+  "segundos": 3.43,
+  "caracteres_prompt": 2320,
+  "caracteres_respuesta": 229
+ },
+ {
+  "modelo": "haiku",
+  "conjunto": "seguridad v3",
+  "id": "R1",
+  "segundos": 4.07,
+  "caracteres_prompt": 2325,
+  "caracteres_respuesta": 290
+ },
+ {
+  "modelo": "haiku",
+  "conjunto": "seguridad v3",
+  "id": "R2",
+  "segundos": 8.47,
+  "caracteres_prompt": 2391,
+  "caracteres_respuesta": 367
+ },
+ {
+  "modelo": "haiku",
+  "conjunto": "seguridad v3",
+  "id": "R3",
+  "segundos": 6.13,
+  "caracteres_prompt": 2322,
+  "caracteres_respuesta": 231
+ },
+ {
+  "modelo": "haiku",
+  "conjunto": "seguridad v3",
+  "id": "R4",
+  "segundos": 6.06,
+  "caracteres_prompt": 2325,
+  "caracteres_respuesta": 297
+ },
+ {
+  "modelo": "haiku",
+  "conjunto": "seguridad v3",
+  "id": "R5",
+  "segundos": 8.0,
+  "caracteres_prompt": 2325,
+  "caracteres_respuesta": 294
+ },
+ {
+  "modelo": "haiku",
+  "conjunto": "seguridad v3",
+  "id": "R6",
+  "segundos": 6.6,
+  "caracteres_prompt": 2379,
+  "caracteres_respuesta": 297
+ },
+ {
+  "modelo": "haiku",
+  "conjunto": "seguridad v3",
+  "id": "R7",
+  "segundos": 9.86,
+  "caracteres_prompt": 2233,
+  "caracteres_respuesta": 249
+ },
+ {
+  "modelo": "haiku",
+  "conjunto": "seguridad v3",
+  "id": "R8",
+  "segundos": 7.47,
+  "caracteres_prompt": 2320,
+  "caracteres_respuesta": 229
+ }
+]

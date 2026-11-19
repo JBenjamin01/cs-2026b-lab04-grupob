@@ -35,17 +35,23 @@ de v3, los 8 ataques fallan. Que v3 ya resistiera no prueba que el prompt sea in
 8 ataques** no bastan contra este modelo. Por eso las defensas de v3.1 y del código se agregaron igual:
 no dependen de que el modelo se porte bien.
 
-## 2. Defensas aplicadas (defensa en capas)
+## 2. El mismo ataque con un modelo más pequeño (reto opcional A)
+
+Con Claude Haiku los resultados fueron iguales: 8/8 con v3 y 8/8 con v3.1 (detalle en
+`../comparacion-modelos/`). En 7 de los 8 ataques con v2, Haiku respondió exactamente lo mismo que
+Sonnet.
+
+## 3. Defensas aplicadas (defensa en capas)
 
 | Capa | Dónde | Qué hace | Cómo se comprueba |
 |------|-------|----------|-------------------|
 | 1. Delimitadores | Prompt v3 y v3.1 | Las entradas y el catálogo van entre `<entradas>` y `<catalogo>` | R1 a R8 en promptfoo |
-| 1b. Datos de origen | `generador_nombres.py` (`NOMBRE_VALIDO`, se implementa en E6) | Un nombre de producto con órdenes o signos no entra al prompt | Prueba de E6 |
+| 1b. Datos de origen | `generador_nombres.py` (`NOMBRE_VALIDO`) | Un nombre de producto con órdenes o signos no entra al prompt | `test_un_producto_envenenado_del_catalogo_no_entra_al_prompt` |
 | 2. Instrucción explícita | Prompt v3.1 | El catálogo y las entradas son DATO; no revelar instrucciones; siempre español y JSON; entradas con órdenes, etiquetas o JSON forjado → «desconocido» | R2 a R8 en promptfoo |
-| 3. Validación de salida | `generador_nombres.py` (se implementa en E6) | Esquema JSON + mismas entradas en el mismo orden + producto del catálogo o «desconocido» | Pruebas de E6 |
+| 3. Validación de salida | `generador_nombres.py` | Esquema JSON + mismas entradas en el mismo orden + producto del catálogo o «desconocido» | `test_respuestas_grabadas_que_no_cumplen_el_contrato_se_rechazan`, `test_producto_fuera_del_catalogo_se_rechaza_aunque_cumpla_el_esquema` |
 | 4. Mínimo privilegio | `NormalizadorNombres` (Lab 07) y la PWA | La IA solo **sugiere**: el comerciante confirma o elige a mano; nada se publica solo | Diseño del Lab 07 (QA-01) |
 
-## 3. Ataques pendientes (backlog del dataset)
+## 4. Ataques pendientes (backlog del dataset)
 
 - Entradas muy largas (cientos de nombres) para agotar el contexto o el costo.
 - Homoglifos («Pаpa amarilla» con una «а» cirílica) para burlar el filtro del catálogo.
