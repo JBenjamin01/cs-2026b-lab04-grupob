@@ -96,3 +96,35 @@ def test_notas_rechaza_textos_vacios_o_largos(tmp_path, texto):
 def test_catalogo_documenta_las_herramientas_nuevas(tmp_path):
     c = Herramientas(tmp_path).catalogo()
     assert {"mapa_repo", "anotar", "leer_notas"} <= set(c) and all(len(c[k]) > 40 for k in ("mapa_repo", "anotar"))
+
+
+# ---- E6: humano en el circuito ----
+def _aprobador(respuestas):
+    from agente.humano import AprobacionConsola
+    it = iter(respuestas)
+    return AprobacionConsola(entrada=lambda _: next(it), salida=lambda *_: None)
+
+EDICION = {"ruta": "src/pedidos/liquidacion.py", "antes": "a", "despues": "b"}
+
+
+def test_humano_aprueba_con_s_y_valida_la_entrada():
+    h = _aprobador(["quizás", "", "S"])                     # dos respuestas inválidas y luego «S»
+    p = Politica(); p.aprobar_edicion = h
+    assert p.evaluar("editar_archivo", EDICION, 1).permitido
+    assert h.registro == [("src/pedidos/liquidacion.py", "s")]
+
+
+def test_humano_rechaza_con_n_y_la_politica_bloquea():
+    p = Politica(); p.aprobar_edicion = _aprobador(["n"])
+    d = p.evaluar("editar_archivo", EDICION, 1)
+    assert not d.permitido and "rechazó" in d.motivo
+
+
+def test_sin_respuesta_valida_no_se_edita():
+    p = Politica(); p.aprobar_edicion = _aprobador(["x"] * 5)
+    assert not p.evaluar("editar_archivo", EDICION, 1).permitido
+
+
+def test_el_humano_no_se_consulta_para_lecturas():
+    p = Politica(); p.aprobar_edicion = _aprobador([])        # si se consultara, next() fallaría
+    assert p.evaluar("leer_archivo", {"ruta": "a.py"}, 1).permitido

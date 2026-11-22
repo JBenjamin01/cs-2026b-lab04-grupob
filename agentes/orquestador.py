@@ -10,6 +10,7 @@ Uso:
   python orquestador.py 01                         # agente único, decisiones grabadas
   python orquestador.py 02 --modo actor-critico    # planificador + ejecutor + revisor (máx. 2 rondas)
   python orquestador.py 03 --interactivo           # sin clave de API: copiar y pegar con su asistente
+  python orquestador.py 01 --humano                # E6: un integrante aprueba cada edición (s/n)
   python orquestador.py 01 --aplicar               # el humano aprueba: copia a src/ los archivos cambiados
 """
 import argparse, json, pathlib, shutil, sys
@@ -39,8 +40,12 @@ def modelo(issue, variante, nombre, interactivo):
     return ModeloInteractivo(archivo) if interactivo else ModeloGrabado(archivo)
 
 
+HUMANO = None                                                       # E6: AprobacionConsola si se usa --humano
+
+
 def politica_ejecutor() -> Politica:
     p = Politica(max_pasos=12)
+    p.aprobar_edicion = HUMANO                                      # humano en el circuito (solo el ejecutor edita)
     p.herramientas_permitidas = p.herramientas_permitidas | {"ver_cambios"}   # leer su propio diff es solo lectura
     return p
 
@@ -122,8 +127,12 @@ if __name__ == "__main__":
     ap.add_argument("issue", choices=["01", "02", "03"])
     ap.add_argument("--modo", choices=["unico", "actor-critico"], default="unico")
     ap.add_argument("--interactivo", action="store_true", help="ModeloInteractivo: copiar y pegar con su asistente")
+    ap.add_argument("--humano", action="store_true", help="E6: aprobar cada edición en la consola (s/n)")
     ap.add_argument("--aplicar", action="store_true", help="copiar a src/ los archivos que el agente cambió")
     a = ap.parse_args()
+    if a.humano:
+        from agente.humano import AprobacionConsola
+        HUMANO = AprobacionConsola()
     resumir(a.issue, a.modo, ejecutar(a.issue, a.modo, a.interactivo))
     if a.aplicar:
         aplicar(a.issue)
