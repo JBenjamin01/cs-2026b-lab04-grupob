@@ -1,0 +1,20 @@
+sequenceDiagram
+    autonumber
+    actor U as Humano
+    participant EJ as Ejecutor (actor)
+    participant P as Política
+    participant H as Herramientas
+    U->>EJ: objetivo
+    EJ->>H: leer_archivo
+    H-->>EJ: contenido de ISSUE-02.md
+    EJ->>H: ejecutar_pruebas
+    H-->>EJ: 1 failed, 1 passed in 0.29s
+    EJ->>H: buscar
+    H-->>EJ: 1 coincidencia(s)
+    EJ->>H: leer_archivo
+    H-->>EJ: contenido de vitrina.py
+    EJ->>H: editar_archivo
+    H-->>EJ: OK, archivo modificado
+    EJ->>H: ejecutar_pruebas
+    H-->>EJ: 2 passed in 0.03s
+    EJ-->>U: Corregí el issue 02: productos_visibles() ahora oculta los p

@@ -1,0 +1,6 @@
+[
+ {"pensamiento": "Primero veo exactamente qué cambió.", "accion": "ver_cambios", "args": {}},
+ {"pensamiento": "El issue dice «la vitrina y la búsqueda». El diff solo toca productos_visibles. Busco otros lugares que filtren por disponible.", "accion": "buscar", "args": {"patron": "disponible"}},
+ {"pensamiento": "buscar_productos (vitrina.py:17) filtra con «and p.disponible» y no mira el stock: la búsqueda sigue mostrando la papa agotada. Confirmo que las pruebas no lo cubren.", "accion": "ejecutar_pruebas", "args": {}},
+ {"pensamiento": "Las pruebas pasan porque ninguna prueba ejerce la búsqueda. Es un hallazgo bloqueante.", "final": "CAMBIOS SOLICITADOS. (1) Bloqueante: buscar_productos() (src/catalogo/vitrina.py:17) repite el criterio antiguo (solo disponible) y la búsqueda sigue mostrando productos agotados; el issue pide corregir la vitrina Y la búsqueda. Sugerencia: que buscar_productos() filtre sobre productos_visibles() para que el criterio quede en un solo lugar. (2) Las pruebas pasan porque ninguna ejercita la búsqueda: queda para el humano agregar esa prueba (el agente no puede tocar tests/). (3) El resto del cambio es correcto."}
+]
