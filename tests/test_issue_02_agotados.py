@@ -2,7 +2,7 @@
 from dataclasses import dataclass
 from decimal import Decimal
 
-from catalogo.vitrina import productos_visibles
+from catalogo.vitrina import buscar_productos, productos_visibles
 
 
 @dataclass
@@ -19,3 +19,9 @@ def test_no_muestra_productos_despublicados():
 def test_issue_02_producto_agotado_no_aparece_en_la_vitrina():
     papa, queso = P("Papa amarilla", Decimal("0")), P("Queso paria", Decimal("3"))
     assert productos_visibles([papa, queso]) == [queso]
+
+
+def test_busqueda_tampoco_muestra_agotados():
+    """Agregada por el humano en E5: el revisor detectó que la búsqueda no estaba cubierta."""
+    papa, papa_negra = P("Papa amarilla", Decimal("0")), P("Papa negra", Decimal("12"))
+    assert buscar_productos([papa, papa_negra], "  PAPA ") == [papa_negra]

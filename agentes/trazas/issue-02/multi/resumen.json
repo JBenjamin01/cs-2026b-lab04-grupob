@@ -1,0 +1,58 @@
+{
+ "issue": "02",
+ "modo": "actor-critico",
+ "rondas": 2,
+ "agentes": {
+  "planificador": {
+   "pasos": 1,
+   "contrato_invalido": 0,
+   "bloqueadas": 0,
+   "herramientas": [],
+   "contexto_caracteres": 523
+  },
+  "ejecutor": {
+   "pasos": 7,
+   "contrato_invalido": 0,
+   "bloqueadas": 0,
+   "herramientas": [
+    "buscar",
+    "editar_archivo",
+    "ejecutar_pruebas",
+    "leer_archivo"
+   ],
+   "contexto_caracteres": 5214
+  },
+  "revisor": {
+   "pasos": 4,
+   "contrato_invalido": 0,
+   "bloqueadas": 0,
+   "herramientas": [
+    "buscar",
+    "ejecutar_pruebas",
+    "ver_cambios"
+   ],
+   "contexto_caracteres": 2697
+  },
+  "ejecutor_r2": {
+   "pasos": 4,
+   "contrato_invalido": 0,
+   "bloqueadas": 0,
+   "herramientas": [
+    "editar_archivo",
+    "ejecutar_pruebas",
+    "leer_archivo"
+   ],
+   "contexto_caracteres": 4074
+  },
+  "revisor_r2": {
+   "pasos": 3,
+   "contrato_invalido": 0,
+   "bloqueadas": 0,
+   "herramientas": [
+    "ejecutar_pruebas",
+    "ver_cambios"
+   ],
+   "contexto_caracteres": 1671
+  }
+ }
+}

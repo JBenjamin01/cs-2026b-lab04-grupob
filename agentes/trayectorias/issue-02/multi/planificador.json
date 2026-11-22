@@ -1,0 +1,3 @@
+[
+ {"pensamiento": "El issue es acotado: un criterio de visibilidad en el catálogo. Un plan corto basta.", "final": "PLAN\n1. Leer ISSUE-02.md y reproducir el fallo con las pruebas.\n2. Localizar el criterio de visibilidad en src/catalogo/vitrina.py y corregirlo.\n3. Verificar: pruebas en verde.\n4. Revisión independiente del diff antes de abrir el Pull Request."}
+]

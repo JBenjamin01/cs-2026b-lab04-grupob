@@ -1,0 +1,5 @@
+[
+ {"pensamiento": "Reviso el diff completo de las dos rondas.", "accion": "ver_cambios", "args": {}},
+ {"pensamiento": "El criterio está en un solo lugar. Confirmo las pruebas.", "accion": "ejecutar_pruebas", "args": {}},
+ {"pensamiento": "Todo correcto.", "final": "APROBADO. Se corrigió el issue 02 en la vitrina y en la búsqueda, con un solo criterio de visibilidad (productos_visibles); 2 pruebas en verde. Queda para el humano: agregar la prueba de la búsqueda con un producto agotado y aprobar el Pull Request."}
+]

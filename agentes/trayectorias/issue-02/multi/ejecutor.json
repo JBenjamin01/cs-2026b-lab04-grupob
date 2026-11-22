@@ -1,0 +1,9 @@
+[
+ {"pensamiento": "Leo el issue para entender qué debe mostrar la vitrina.", "accion": "leer_archivo", "args": {"ruta": "ISSUE-02.md"}},
+ {"pensamiento": "Reproduzco el fallo antes de tocar el código.", "accion": "ejecutar_pruebas", "args": {}},
+ {"pensamiento": "La papa con stock 0 sigue visible. Busco la función de la vitrina.", "accion": "buscar", "args": {"patron": "def productos_visibles"}},
+ {"pensamiento": "Leo el módulo de la vitrina.", "accion": "leer_archivo", "args": {"ruta": "src/catalogo/vitrina.py"}},
+ {"pensamiento": "productos_visibles solo mira disponible, no el stock. Agrego la condición de stock mayor que 0.", "accion": "editar_archivo", "args": {"ruta": "src/catalogo/vitrina.py", "antes": "    return [p for p in productos if p.disponible]", "despues": "    return [p for p in productos if p.disponible and p.stock_disponible > 0]   # issue 02: sin agotados"}},
+ {"pensamiento": "Verifico con las pruebas.", "accion": "ejecutar_pruebas", "args": {}},
+ {"pensamiento": "Pruebas en verde. Termino.", "final": "Corregí el issue 02: productos_visibles() ahora oculta los productos con stock 0 además de los despublicados. Pruebas: 2 aprobadas. No modifiqué las pruebas."}
+]
