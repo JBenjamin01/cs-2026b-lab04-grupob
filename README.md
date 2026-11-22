@@ -1,4 +1,4 @@
-# San Camilo en Línea — Laboratorios 04 a 09: arquitectura, diseño UML, C4, patrones, ADD y prompts
+# San Camilo en Línea — Laboratorios 04 a 10: arquitectura, diseño UML, C4, patrones, ADD, prompts y agentes
 
 [![fitness-functions](https://github.com/JBenjamin01/cs-2026b-lab04-grupob/actions/workflows/fitness.yml/badge.svg)](https://github.com/JBenjamin01/cs-2026b-lab04-grupob/actions/workflows/fitness.yml)
 [![evaluacion-de-prompts](https://github.com/JBenjamin01/cs-2026b-lab04-grupob/actions/workflows/prompts.yml/badge.svg)](https://github.com/JBenjamin01/cs-2026b-lab04-grupob/actions/workflows/prompts.yml)
@@ -471,6 +471,13 @@ cs-2026b-lab04-grupob/
 │   ├── comparacion-modelos/   # reto A: Sonnet frente a Haiku
 │   ├── proveedor_grabado.py, verificar_meta.py, versiones.json, graficos.py, bitacora-ia.md
 │   └── img/                   # gráficos de resultados
+├── agentes/                   # Lab 10: mini framework de agentes (agente/, orquestador.py, pruebas_agente/)
+│   ├── diseno/                # lienzo.md, estados.puml y estados.png
+│   ├── trayectorias/          # decisiones grabadas del asistente (no se editan)
+│   ├── trazas/                # evidencia de cada ejecución (no se edita)
+│   ├── trabajo_original/      # versión de partida de cada issue
+│   └── coordinacion.md, delegacion.md, observacion.md, bitacora-ia.md, img/
+├── issues/                    # Lab 10: ISSUE-01 a ISSUE-03 que resuelven los agentes
 ├── docs/
 │   ├── architecture/          # Laboratorio 04 (+ ADR-004 del Lab 05, ADR-005 del Lab 07 y Lab 08)
 │   │   ├── drivers.md, matriz-decision.md, bitacora-ia.md, atam-lite.md
@@ -479,7 +486,7 @@ cs-2026b-lab04-grupob/
 │   │   ├── fitness/           # Lab 08 (E5): violaciones.md
 │   │   ├── img/               # Lab 08 (E7): matriz de riesgos
 │   │   ├── anexos/            # respuestas completas de Gemini y ChatGPT
-│   │   ├── adr/               # 000-plantilla, 001 a 008
+│   │   ├── adr/               # 000-plantilla, 001 a 008 y 010 (sistema agéntico, Lab 10)
 │   │   ├── c4/                # Laboratorio 06 (actualizado en el Lab 08): workspace.dsl, img/
 │   │   └── diagramas/         # arquitectura.mmd, alternativa.puml, despliegue.py, graficos_lab08.py, img/
 │   └── design/                # Laboratorio 05
