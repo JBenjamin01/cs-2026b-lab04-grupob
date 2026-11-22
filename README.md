@@ -412,6 +412,48 @@ cd ../.. && pip install jsonschema pyyaml matplotlib && python -m pytest -q test
 python prompts/graficos.py                                                         # regenera los gráficos
 ```
 
+## Sistemas agénticos (Lab 10)
+
+Un sistema multiagente pequeño (mini framework de ~300 líneas en `agentes/`) corrige 3 issues
+sembrados en el código, cada uno con una prueba que falla. Regla de oro: **el agente propone; el
+contrato y la política filtran; el humano aprueba.** Decisión de arquitectura: [ADR-010](docs/architecture/adr/010-sistema-agentico.md).
+
+| Issue | Error | Módulo | Coordinación |
+|-------|-------|--------|--------------|
+| [01](issues/ISSUE-01.md) | Un pedido a varios puestos cobra dos veces la comisión | `pedidos/liquidacion.py` | Agente único (ReAct) |
+| [02](issues/ISSUE-02.md) | Un producto agotado sigue visible | `catalogo/vitrina.py` | Agente único y actor-crítico |
+| [03](issues/ISSUE-03.md) | Error de redondeo en céntimos | `pedidos/liquidacion.py` | ReAct con `mapa_repo` y notas |
+
+### Máquina de estados del agente
+
+![Máquina de estados](agentes/diseno/estados.png)
+
+### Trayectoria del issue 02 (planificador, ejecutor y revisor; generada desde las trazas)
+
+![Trayectoria issue 02](agentes/trazas/issue-02/multi/trayectoria.png)
+
+### Métricas de las trazas (E7)
+
+| Ejecución | Pasos | Rondas | Herramientas usadas | Rechazadas por el contrato | Bloqueadas por la política | Pruebas en rojo observadas | Contexto final |
+|---|---|---|---|---|---|---|---|
+| Issue 01 · agente único | 10 | 1 | buscar, editar_archivo, ejecutar_comando, ejecutar_pruebas, leer_archivo, ver_cambios | 0 | 1 | 1 | 7 181 car. (~1 795 tokens) |
+| Issue 02 · agente único | 7 | 1 | buscar, editar_archivo, ejecutar_pruebas, leer_archivo | 0 | 0 | 1 | 4 986 car. (~1 246 tokens) |
+| Issue 02 · actor-crítico | 19 | 2 | buscar, editar_archivo, ejecutar_pruebas, leer_archivo, ver_cambios | 0 | 0 | 1 | 14 179 car. (~3 544 tokens) |
+| Issue 03 · único + mapa y notas | 12 | 1 | anotar, editar_archivo, ejecutar_pruebas, leer_archivo, leer_notas, mapa_repo | 0 | 0 | 2 | 10 033 car. (~2 508 tokens) |
+
+Detalles: [lienzo](agentes/diseno/lienzo.md) · [coordinación (E5)](agentes/coordinacion.md) ·
+[delegación (E6)](agentes/delegacion.md) · [observación (E7)](agentes/observacion.md) · [bitácora de IA](agentes/bitacora-ia.md).
+
+```bash
+cd agentes
+python -m pytest -q pruebas_agente                 # 28 passed: contrato, política, herramientas y humano
+python orquestador.py 01                           # agente único con decisiones grabadas
+python orquestador.py 02 --modo actor-critico      # planificador -> ejecutor <-> revisor -> humano
+python orquestador.py 01 --humano                  # aprobar cada edición (s/n)
+python agente/traza.py trazas/issue-02/multi       # trayectoria.mmd + trayectoria.png
+python agente/metricas.py                          # tabla de métricas + img/metricas.png
+```
+
 ## Estructura del repositorio
 
 ```
