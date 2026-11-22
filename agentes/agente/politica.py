@@ -12,7 +12,8 @@ class Decision:
 @dataclass
 class Politica:
     herramientas_permitidas: set = field(default_factory=lambda: {
-        "listar_archivos", "leer_archivo", "buscar", "ejecutar_pruebas", "editar_archivo", "ejecutar_comando"})
+        "listar_archivos", "leer_archivo", "buscar", "ejecutar_pruebas", "editar_archivo", "ejecutar_comando",
+        "mapa_repo", "anotar", "leer_notas"})                     # E4: herramienta nueva y memoria de notas
     comandos_permitidos: tuple = (r"^python -m pytest\b", r"^radon cc\b", r"^lint-imports\b", r"^git (status|diff)\b")
     rutas_protegidas: tuple = ("tests/",)          # el agente no puede "arreglar" las pruebas para que pasen
     max_pasos: int = 15

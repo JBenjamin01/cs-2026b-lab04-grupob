@@ -1,0 +1,2 @@
+- Hipótesis: abonos_a_puestos calcula con float y round(); comision_del_pedido y reglas.comision_de usan Decimal con quantize. Revisar solo src/pedidos/liquidacion.py.
+- Error mío: quantize(CENTIMO) sin rounding redondea al par (0.125 -> 0.12). Usar ROUND_HALF_UP igual que comision_del_pedido para que abonos + comisión cuadren.

@@ -60,3 +60,39 @@ def test_el_rechazo_vuelve_al_modelo_como_observacion(tmp_path):
     a = Agente("ejecutor", ModeloGrabado(archivo), Herramientas(tmp_path), Politica(), "objetivo", tmp_path / "t.jsonl")
     assert a.ejecutar() == "ok"
     assert a.eventos[1]["estado"] == "CONTRATO_INVALIDO" and "ERROR DE CONTRATO" in a.historial[2]["content"]
+
+
+# ---- E4: herramienta mapa_repo y memoria de notas ----
+def test_mapa_repo_devuelve_firmas_y_docstrings_sin_el_cuerpo(tmp_path):
+    (tmp_path / "src" / "pedidos").mkdir(parents=True)
+    (tmp_path / "src" / "pedidos" / "liquidacion.py").write_text(
+        'def abonos_a_puestos(subtotales: dict, tasa) -> dict:\n    """Monto que se abona a cada puesto."""\n'
+        '    secreto = 42\n    return {}\n\nclass Caja:\n    def cerrar(self, dia):\n        pass\n', encoding="utf-8")
+    mapa = Herramientas(tmp_path).mapa_repo("src")
+    assert "src/pedidos/liquidacion.py" in mapa
+    assert "def abonos_a_puestos(subtotales: dict, tasa) -> dict  # l.1: Monto que se abona a cada puesto." in mapa
+    assert "class Caja" in mapa and "def cerrar(self, dia)" in mapa
+    assert "secreto" not in mapa                                    # no entrega el cuerpo de las funciones
+
+
+def test_mapa_repo_no_sale_del_sandbox(tmp_path):
+    with pytest.raises(PermissionError):
+        Herramientas(tmp_path).mapa_repo("../..")
+
+
+def test_notas_se_guardan_y_se_leen_en_orden(tmp_path):
+    h = Herramientas(tmp_path)
+    assert h.leer_notas() == "(sin notas)"
+    assert h.anotar("Hipótesis: el abono usa float") == "OK: nota 1 guardada"
+    h.anotar("Revisado: src/pedidos/liquidacion.py")
+    assert h.leer_notas().splitlines() == ["- Hipótesis: el abono usa float", "- Revisado: src/pedidos/liquidacion.py"]
+
+
+@pytest.mark.parametrize("texto", ["", "   ", "x" * 301])
+def test_notas_rechaza_textos_vacios_o_largos(tmp_path, texto):
+    assert Herramientas(tmp_path).anotar(texto).startswith("ERROR")
+
+
+def test_catalogo_documenta_las_herramientas_nuevas(tmp_path):
+    c = Herramientas(tmp_path).catalogo()
+    assert {"mapa_repo", "anotar", "leer_notas"} <= set(c) and all(len(c[k]) > 40 for k in ("mapa_repo", "anotar"))

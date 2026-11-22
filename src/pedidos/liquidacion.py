@@ -21,5 +21,6 @@ def comision_del_pedido(subtotales: dict[str, Decimal], tasa: Decimal) -> Decima
 
 def abonos_a_puestos(subtotales: dict[str, Decimal], tasa: Decimal) -> dict[str, Decimal]:
     """Monto que se abona a cada puesto: su subtotal menos la comisión de su parte."""
-    return {puesto: Decimal(str(round(float(s) * (1 - float(tasa)), 2)))
+    # issue 03: Decimal y el MISMO redondeo que comision_del_pedido, así abonos + comisión = total
+    return {puesto: s - (s * tasa).quantize(CENTIMO, rounding=ROUND_HALF_UP)
             for puesto, s in subtotales.items()}
