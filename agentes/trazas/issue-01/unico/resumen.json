@@ -1,0 +1,21 @@
+{
+ "issue": "01",
+ "modo": "unico",
+ "rondas": 1,
+ "agentes": {
+  "ejecutor": {
+   "pasos": 10,
+   "contrato_invalido": 0,
+   "bloqueadas": 1,
+   "herramientas": [
+    "buscar",
+    "editar_archivo",
+    "ejecutar_comando",
+    "ejecutar_pruebas",
+    "leer_archivo",
+    "ver_cambios"
+   ],
+   "contexto_caracteres": 7181
+  }
+ }
+}

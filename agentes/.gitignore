@@ -1,0 +1,3 @@
+# Sandbox de cada ejecución: se recrea desde trabajo_original/ (nunca se trabaja sobre el repositorio real)
+trabajo/
+__pycache__/

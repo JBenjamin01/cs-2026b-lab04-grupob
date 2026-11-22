@@ -13,10 +13,9 @@ CENTIMO = Decimal("0.01")
 
 def comision_del_pedido(subtotales: dict[str, Decimal], tasa: Decimal) -> Decimal:
     """Comisión de la plataforma por un pedido: `tasa` aplicada a lo vendido por cada puesto."""
-    total = sum(subtotales.values(), Decimal("0"))
     comision = Decimal("0")
-    for _puesto in subtotales:
-        comision += (total * tasa).quantize(CENTIMO, rounding=ROUND_HALF_UP)
+    for subtotal in subtotales.values():        # issue 01: cada puesto paga la comisión de SU parte
+        comision += (subtotal * tasa).quantize(CENTIMO, rounding=ROUND_HALF_UP)
     return comision
 
 
