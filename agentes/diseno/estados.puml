@@ -1,0 +1,24 @@
+@startuml estados
+' Máquina de estados del agente de San Camilo en Línea (Lab 10, E3). Fiel a agente/nucleo.py y agente/politica.py.
+hide empty description
+skinparam state {
+  BackgroundColor #FDE9E7
+  BorderColor #7F1D1D
+}
+[*] --> Decidiendo : objetivo (issue)
+Decidiendo --> ValidandoContrato : el modelo devuelve una decisión
+ValidandoContrato --> Decidiendo : [contrato inválido] / observación «ERROR DE CONTRATO»
+ValidandoContrato --> Finalizado : [decisión con «final»]
+ValidandoContrato --> EvaluandoPolitica : [decisión con «accion» válida]
+EvaluandoPolitica --> LimiteAlcanzado : [paso > max_pasos]
+EvaluandoPolitica --> Decidiendo : [acción no permitida] / observación «BLOQUEADO»
+EvaluandoPolitica --> EsperandoAprobacion : [editar_archivo y aprobar_edicion activo]
+EsperandoAprobacion --> Ejecutando : humano responde «s»
+EsperandoAprobacion --> Decidiendo : humano responde «n» / «rechazó la edición»
+EsperandoAprobacion --> EsperandoAprobacion : respuesta distinta de «s» o «n»
+EvaluandoPolitica --> Ejecutando : [acción permitida]
+Ejecutando --> Observando : resultado o error de la herramienta / registrar en la traza
+Observando --> Decidiendo : observación agregada al historial
+Finalizado --> [*]
+LimiteAlcanzado --> [*]
+@enduml
